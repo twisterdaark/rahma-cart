@@ -3046,22 +3046,23 @@ function drawSettings(t) {
   slider('المؤثرات', 112, sfxV, v => { sfxV = v; applyVol(); saveOpt(); });
   slider('المزيكا', 166, musV, v => { musV = v; applyVol(); saveOpt(); });
   T('الشرايط', 480, 214, 20, '#3a1d0e', FD);
-  const tk = Object.keys(TAPES), tsp = Math.min(92, 600 / tk.length);   // centred so every tape stays inside the panel
+  const tk = Object.keys(TAPES), tsp = Math.min(94, 640 / tk.length);   // centred so every tape stays inside the panel
   tk.forEach((k, i) => {
     const tp = TAPES[k], x = 480 + (tk.length - 1) * tsp / 2 - i * tsp, y = 270, own = S.tapes[k], sel = S.tape === k;
     if (sel) { const p = RRp(x - 44, y - 38, 88, 112, 12); ctx.fillStyle = '#e6f6dc'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = '#2e9d4a'; ctx.stroke(p); }
     ctx.save(); if (!own) ctx.globalAlpha = 0.35; cassette(x, y, tp.c, 0.95, sel && musicLive); ctx.restore();
-    T(tp.n, x, y + 44, fit(tp.n, 84, 12), '#3a1d0e'); T(own ? (sel ? '♪ شغال' : 'دوس تشغّل') : '🔒 السوق', x, y + 62, 11, own ? '#2e7d32' : '#9a6a4a');
+    T(tp.n, x, y + 44, fit(tp.n, 80, 12), '#3a1d0e'); T(own ? (sel ? '♪ شغال' : 'دوس تشغّل') : '🔒 السوق', x, y + 62, 11, own ? '#2e7d32' : '#9a6a4a');
     if (own) btn(x - 47, y - 38, 94, 112, () => { S.tape = k; save(); sfx.tap(); if (musV <= 0) { musV = 0.6; applyVol(); saveOpt(); } }, 'ovl');
   });
-  bigBtn(510, 408, 250, 52, 'صوت الزباين: ' + (voiceOn ? 'شغال' : 'مقفول'), () => { voiceOn = !voiceOn; saveOpt(); }, '#2e7fb8', 18, 'ovl');
-  bigBtn(200, 408, 250, 52, 'رجوع', () => { OVL = null; }, '#8a5a3c', 22, 'ovl');
+  const inst = PWA && !standalone();
+  pill(inst ? 500 : 345, 404, 270, 38, (voiceOn ? '🔊' : '🔇') + ' صوت الزباين: ' + (voiceOn ? 'شغال' : 'مقفول'), () => { voiceOn = !voiceOn; saveOpt(); }, voiceOn ? '#dcecf8' : '#ece4dc', '#1e4a7a', 'ovl');
+  if (inst) pill(190, 404, 290, 38, '📲 نزّلها على الموبايل كأبلكيشن', () => { UPFN = installApp; }, '#efe6ff', '#3a2a6a', 'ovl');
+  bigBtn(365, 456, 230, 46, 'رجوع', () => { OVL = null; }, '#8a5a3c', 22, 'ovl');
   if (CLOUD.on) {
     cloudInit(); const u = CLOUD.user;
-    if (u) { pill(250, 350, 350, 40, '☁️ محفوظ على جوجل • ' + (u.displayName || u.email || '').slice(0, 18), () => { toast('تقدّمك بيتحفظ على حسابك لوحده ☁️', '#9be37a'); }, '#e6f6dc', '#1e5a2a', 'ovl'); pill(610, 350, 100, 40, 'خروج', cloudSignOut, '#f6ece0', '#9a5a3a', 'ovl'); }
-    else pill(280, 350, 400, 40, CLOUD.st === 'busy' ? '⏳ استنى...' : '🔐 احفظ تقدّمك بحساب جوجل', () => { UPFN = cloudSignIn; }, '#ffffff', '#2a1a10', 'ovl');
+    if (u) { pill(250, 352, 350, 38, '☁️ محفوظ على جوجل • ' + (u.displayName || u.email || '').slice(0, 18), () => { toast('تقدّمك بيتحفظ على حسابك لوحده ☁️', '#9be37a'); }, '#e6f6dc', '#1e5a2a', 'ovl'); pill(610, 352, 100, 38, 'خروج', cloudSignOut, '#f6ece0', '#9a5a3a', 'ovl'); }
+    else pill(280, 352, 400, 38, CLOUD.st === 'busy' ? '⏳ استنى...' : '🔐 احفظ تقدّمك بحساب جوجل', () => { UPFN = cloudSignIn; }, '#ffffff', '#2a1a10', 'ovl');
   }
-  if (PWA && !standalone()) pill(330, 464, 300, 34, '📲 نزّلها على الموبايل كأبلكيشن', () => { UPFN = installApp; }, '#efe6ff', '#3a2a6a', 'ovl');
 }
 function wrapT(s, x, y, maxW, size, c, lh, font = FB) {
   ctx.font = (font === FB ? '800 ' : '') + size + 'px ' + font; const lines = []; let cur = '';
