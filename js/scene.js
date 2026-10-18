@@ -1,7 +1,7 @@
 // ---------- scene drawing ----------
 // seasonal clothes: where each regular's head starts (x, top y, width), and what doesn't suit him
 const HEAD = { hafo: [0, -206, 90], aao: [0, -210, 78], aaota: [-2, -219, 84], hank: [0, -203, 92], zarb: [0, -170, 92], jab: [6, -186, 46], sakr: [10, -160, 72], has: [-4, -177, 64],
-  zool: [0, -183, 84], floba: [0, -212, 84], abkh: [0, -197, 84], prince: [0, -201, 90], abbas: [0, -166, 62], shawqy: [0, -190, 86], shamq: [-8, -198, 74], dola: [12, -176, 62], barber: [0, -206, 92], hankL: [0, -190, 84], richard: [0, -172, 70] };
+  zool: [0, -183, 84], floba: [0, -212, 84], abkh: [0, -197, 84], prince: [0, -201, 90], abbas: [0, -166, 62], shawqy: [0, -190, 86], shamq: [-8, -198, 74], dola: [12, -176, 62], barber: [0, -206, 92], hankL: [0, -190, 84], richard: [0, -172, 70], rasoda: [3, -206, 40] };
 const ACCNO = { prince: 'cap cone', zool: 'cap cone straw', floba: 'cap cone straw flag' };
 function accPick(ch) {   // cosmetic only, so it uses Math.random and leaves the day's seed alone
   if (!HEAD[ch]) return '';
@@ -243,9 +243,9 @@ function diaaHintHand() {   // a hand that drags from the kiosk shelf to the doc
 }
 function drawFruit(t) {
   R(870, 262, 84, 14, 3, '#4a2a12', { lw: 2, hl: 0 });
-  for (const k of FRUITK) { const s = SRC[k]; if (!(G.drag && G.drag.key === 'src:' + k)) prod(k, s.x, s.y, 0.62, t); }
+  for (const k of FRUITK) { const s = SRC[k]; if (!(G.drag && G.drag.key === 'src:' + k)) prod(k, s.x, s.y, 0.54, t); }
   R(866, 278, 92, 26, 4, '#c8945a', { lw: 2.6 }); L([[869, 283], [955, 283]], 1.4, '#8a5228', 0.7); L([[869, 299], [955, 299]], 1.4, '#8a5228', 0.7);
-  for (const k of FRUITK) T(SRC[k].lb, SRC[k].x, 292, fit(SRC[k].lb, 40, 11, FD), '#4a2410', FD);
+  for (const k of FRUITK) { const ls = tr(SRC[k].lb).split('\n'); ls.forEach((l, i) => T(l, SRC[k].x, 292 + (i - (ls.length - 1) / 2) * 10, fit(l, 27, ls.length > 1 ? 10 : 11, FD), '#4a2410', FD)); }   // a long name goes on two lines
 }
 function drawAHSeat(t) {
   const a = G.ah;
@@ -270,13 +270,16 @@ function drawWalkers(t) {
   const ws = G.walkers; if (!ws || !ws.length) return;
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 26, CLIPX[1] - CLIPX[0], CT - 32); ctx.clip();
   for (const w of ws) {
-    if (w.kind !== 'fly') { ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 70 * w.s * (w.kind === 'tuk' ? 1.8 : 1), 12 * w.s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
-    ctx.save(); ctx.translate(w.x, w.y + (w.kind === 'fly' ? Math.sin(t * 3 + w.seed) * 10 : 0)); ctx.scale(w.dir * w.s, w.s);
+    if (w.kind !== 'fly' && w.kind !== 'ufo' && w.act !== 'astro' && w.ch !== 'rasoda') { ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 70 * w.s * (w.kind === 'tuk' ? 1.8 : 1), 12 * w.s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+    ctx.save(); ctx.translate(w.x, w.y + (w.kind === 'fly' || w.kind === 'ufo' ? Math.sin(t * 3 + w.seed) * 10 : 0)); ctx.scale(w.dir * w.s, w.s);
     if (!w.L) w.L = makeLayer();
-    sprite(w.L, tb(10, w.seed), -170, -390, 340, 430, () => { if (w.kind === 'walk') walkerBody(w, t); else if (w.kind === 'tuk') drawTuk(t); else if (w.kind === 'bike') drawBike(t); else if (w.kind === 'gas') drawGas(t, w); else CH[w.ch].d(1, t); }, SC * DPR * w.s);
+    sprite(w.L, tb(10, w.seed), -170, -390, 340, 430, () => { if (w.kind === 'walk') walkerBody(w, t); else if (w.kind === 'tuk') drawTuk(t); else if (w.kind === 'bike') drawBike(t); else if (w.kind === 'gas') drawGas(t, w); else if (w.kind === 'ufo') drawUfo(t); else CH[w.ch].d(1, t); }, SC * DPR * w.s);
     ctx.restore();
     if (w.kind === 'tuk') for (let i = 0; i < 2; i++) { const p = (t * 0.9 + i * 0.5) % 1; ctx.save(); ctx.globalAlpha = 1 - p; T('♫', w.x - w.dir * 30 + p * 10, w.y - 100 - p * 26, 18, '#ffd23f', FB, 'center', 3); ctx.restore(); }
     if (w.kind === 'gas' && Math.sin(t * 2 + w.seed) > 0.4) T('أنابيب!', w.x, w.y - 162, 14, '#fff', FD, 'center', 3);
+    if (w.kind === 'walk' && HEAD[w.ch]) { const hy = w.y + w.s * (HEAD[w.ch][1] - 100);
+      if (w.stopT > 0 && w.emo) T(w.emo, w.x, hy - 16 + Math.sin(t * 5) * 2, 22, '#fff', FB, 'center');
+      else if (w.act === 'phone' && Math.sin(t * 1.5 + w.seed) > 0.5) T('ألو؟', w.x + w.dir * 34, hy - 4, 14, '#fff', FD, 'center', 3); }
   }
   ctx.restore();
 }
@@ -326,18 +329,23 @@ function drawItems(t) {
   for (const f of G.fly || []) { const k = easeOut(f.t / 0.35); prod(f.p, lerp(f.x0, f.x1, k), lerp(f.y0, f.y1, k) - Math.sin(k * Math.PI) * 60, 0.7, t); }
   drawVitGlass(); diaaHintHand();
   if (G.sel && G.sel.startsWith('src:')) { const [x, y] = srcPos(G.sel.slice(4)); ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 8); ctx.beginPath(); ctx.arc(x, y - 18, 26, 0, Math.PI * 2); ctx.lineWidth = 3; ctx.strokeStyle = '#ffe066'; ctx.setLineDash([6, 5]); ctx.stroke(); ctx.restore(); }
-  if (G.drag) { const p = prodOf(G.drag.key); if (p) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(G.drag.x + 6, G.drag.y + 42, 30, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; prod(p, G.drag.x, G.drag.y + 30, 1.15, t); ctx.restore(); } }
+  const xs = G.xsel || (G.drag && G.drag.key.startsWith('x:') && G.drag.moved ? G.drag.key[2] : '');
+  if (xs) for (const k in SLOT) { const p = G.items[k]; if (p && EXTRAS[xs].on.includes(pid(p)) && !pex(p)) { const [x, y] = SLOT[k]; ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 8); ctx.beginPath(); ctx.arc(x, y - 30, 34, 0, Math.PI * 2); ctx.lineWidth = 3; ctx.strokeStyle = xs === 's' ? '#fff3d6' : '#bfe6ff'; ctx.setLineDash([6, 5]); ctx.stroke(); ctx.restore(); } }
+  if (G.drag && G.drag.key.startsWith('x:')) { if (G.drag.moved) { ctx.save(); ctx.translate(G.drag.x - 23 * 1.8, G.drag.y + 22 * 1.8 - 26); ctx.scale(1.8, 1.8); xBadge(G.drag.key[2]); ctx.restore(); } }
+  else if (G.drag) { const p = prodOf(G.drag.key); if (p) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(G.drag.x + 6, G.drag.y + 42, 30, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; prod(p, G.drag.x, G.drag.y + 30, 1.15, t); ctx.restore(); } }
 }
 function drawDirt(t) {
   const n = dirtN();
   for (let i = 0; i < n; i++) {
-    const x = DIRTX[i] + (hash(i + S.day) - 0.5) * 14, y = CT - 6;
+    const x = DIRTX[i] + (hash(i + S.day) - 0.5) * 14, y = CT - 4;
+    ctx.save(); ctx.translate(x, y); ctx.scale(1.6, 1.6); ctx.translate(-x, -y);   // drawn bigger so it shows
     if (i === 0) { B([[x - 9, y - 2], [x - 2, y - 9], [x + 8, y - 6], [x + 9, y + 3], [x, y + 6], [x - 8, y + 4]], '#f4f2ec', { lw: 1.8, hl: 0.2 }); L([[x - 4, y - 3], [x + 3, y + 1]], 1, '#9a9488'); }
     else if (i === 1) { ctx.save(); ctx.translate(x, y); ctx.rotate(1.3); R(-6, -11, 12, 22, 3, '#d32f2f', { lw: 1.8, hl: 0.4 }); R(-6, -11, 12, 4, 2, '#c9d1d6', { lw: 1.2 }); ctx.restore(); }
     else if (i === 2) E(x, y + 3, 14, 5, '#8a4a1a', { lw: 1.4, hl: 0.3, v: false });
     else if (i === 3) { for (const s of [-1, 1]) B([[x, y - 4], [x + s * 6, y - 2], [x + s * 12, y + 4], [x + s * 4, y + 2]], '#f4c430', { lw: 1.6 }); E(x, y - 4, 3, 3, '#6a4a1a', { lw: 1 }); }
     else { L([[x - 12, y], [x + 10, y]], 2.2, '#e8e0cc'); for (let k = 0; k < 4; k++) L([[x - 8 + k * 5, y - 5], [x - 6 + k * 5, y + 5]], 1.6, '#e8e0cc'); E(x + 12, y, 4, 3.5, '#e8e0cc', { lw: 1.2 }); }
-    const fx = x + Math.cos(t * 5 + i * 2) * 16, fy = y - 18 + Math.sin(t * 8 + i) * 7;   // a fly
+    ctx.restore();
+    const fx = x + Math.cos(t * 5 + i * 2) * 16, fy = y - 22 + Math.sin(t * 8 + i) * 7;   // a fly
     ctx.save(); ctx.globalAlpha = 0.6; E(fx - 3, fy - 3, 3.5, 2, '#e8f4ff', { ol: false, shade: false }); E(fx + 3, fy - 3, 3.5, 2, '#e8f4ff', { ol: false, shade: false }); ctx.restore(); dot(fx, fy, 2.4, '#1a1a1a');
   }
   if (G.wipe) { const { x, y } = G.wipe; R(x - 18, y - 12, 36, 24, 7, '#ffd23f', { lw: 2.4, hl: 0.3 }); R(x - 18, y + 4, 36, 8, 3, '#2e9d4a', { lw: 2 }); for (let k = 0; k < 3; k++) E(x - 10 + k * 10, y - 16 - (k % 2) * 4, 3, 3, '#ffffff', { lw: 1, hl: 0.5, v: false }); }
@@ -683,7 +691,7 @@ function pill(x, y, w, h, label, fn, col = '#f0e2c4', tc = '#5a3a20', id = '') {
 }
 function dim(a = 0.7) { ctx.fillStyle = `rgba(20,8,2,${a})`; ctx.fillRect(0, 0, W, H); }
 function drawTitle(t) {
-  const order = ['hafo', 'aao', 'hank', 'jab', 'sakr', 'zool', 'floba', 'shamq', 'has', 'aaota', 'abkh', 'zarb', 'prince', 'dola', 'abbas', 'shawqy', 'barber', 'hankL', 'richard'];
+  const order = ['hafo', 'aao', 'hank', 'jab', 'sakr', 'zool', 'floba', 'shamq', 'has', 'aaota', 'abkh', 'zarb', 'prince', 'dola', 'abbas', 'shawqy', 'barber', 'hankL', 'richard', 'rasoda'];
   drawWalkers(t);
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 0, CLIPX[1] - CLIPX[0], CT - 6); ctx.clip();
   for (let k = 0; k < 4; k++) {

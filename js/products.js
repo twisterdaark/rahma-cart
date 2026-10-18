@@ -20,8 +20,9 @@ const PROD = {
   cig: { n: 'سجاير', price: 6, rare: 1 },
   nut: { n: 'نوتيلا', price: 9, rare: 1 },
   wbr: { n: 'عيش حبة كاملة', price: 5, rare: 1 },
-  ngl: { n: 'النجلاوي', price: 6, fr: 1 },
+  ngl: { n: 'الزنجلاوي', price: 6, fr: 1 },
   koala: { n: 'كوالا لامبور', price: 7, fr: 1 },
+  zng: { n: 'الزنجوجوكوكو', price: 8, fr: 1, ch: 'rasoda' },
 };
 const BASE = ['hafoWrap', 'aaoJuice', 'halaq'];
 const OWN = {}; for (const k in PROD) if (PROD[k].ch && !PROD[k].sea) OWN[PROD[k].ch] = k;
@@ -234,7 +235,7 @@ const PDRAW = {
     E(0, -8, 26, 9, '#a8743e', { lw: 2.2 }); E(0, -18, 24, 11, '#b8844a', { lw: 2.2 });
     for (let i = 0; i < 12; i++) dot(-18 + hash(i) * 36, -24 + hash(i + 5) * 10, 1.3, i % 3 ? '#6a4a22' : '#ead2a0');
   },
-  ngl(t) {   // النجلاوي: two bananas in a strawberry's skin
+  ngl(t) {   // الزنجلاوي: two bananas in a strawberry's skin
     ctx.save(); ctx.rotate(Math.sin(t * 3) * 0.03);
     [['#c81e30', -7, -9, 0.18], ['#ec2c40', 0, 0, 0]].forEach(([c, dx, dy, a]) => {
       ctx.save(); ctx.translate(dx, dy); ctx.rotate(a);
@@ -257,13 +258,29 @@ const PDRAW = {
     dot(-11, -33, 2.6, '#111'); dot(11, -33, 2.6, '#111'); dot(-11.8, -34, 0.9, '#fff'); dot(10.2, -34, 0.9, '#fff');
     B([[-2, -52], [5, -62], [13, -60], [6, -52]], '#4fa83a', { lw: 1.6 }); L([[0, -52], [-1, -60]], 2.6, '#5a3a1a');
   },
+  zng(t) {   // الزنجوجوكوكو: a black pineapple, shiny like an olive, with a chicken's head where the leaves should be
+    E(0, -24, 19, 25, '#24201e', { lw: 2.8 });
+    ctx.save(); const cp = new Path2D(); cp.ellipse(0, -24, 18, 24, 0, 0, Math.PI * 2); ctx.clip(cp);
+    for (let i = -3; i <= 3; i++) { L([[i * 11 - 26, -52], [i * 11 + 26, 4]], 1.4, '#5a5a3a', 0.8); L([[i * 11 + 26, -52], [i * 11 - 26, 4]], 1.4, '#5a5a3a', 0.8); }
+    ctx.restore();
+    Q(-11, -30, -11, -42, -3, -45, 3, '#ffffff', 0.5); dot(-8, -16, 1.8, 'rgba(255,255,255,.4)');
+    ctx.save(); ctx.translate(0, -50); ctx.rotate(Math.sin(t * 5) * 0.08);
+    for (const [x, y, r] of [[-6, -15, 4], [-0.5, -18, 4.6], [5, -15, 4]]) E(x, y, r, r, '#e0262c', { lw: 1.8 });
+    E(0, -5, 10.5, 10, '#4a4044', { lw: 2.4 });
+    PL([[8, -8], [18, -4.5], [8, -1]], '#f4a62a', { lw: 1.8 }); E(8.5, 3.5, 3, 4.6, '#e0262c', { lw: 1.6 });
+    dot(3, -8, 2.8, '#fff'); dot(3.8, -8, 1.5, '#111');
+    ctx.restore();
+  },
 };
 const PIC = {};
 function prodIcon(id, x, y, s) { const Lr = PIC[id + s] || (PIC[id + s] = makeLayer()); ctx.save(); ctx.translate(x, y); sprite(Lr, 'p', -72 * s, -120 * s, 144 * s, 136 * s, () => prod(id, 0, 0, s, 0)); ctx.restore(); }
 function prod(id, x, y, s = 1, t = 0, lvl = 1) { const v = VOL, [b, xt] = id.split('|'); VOL = true; ctx.save(); ctx.translate(x, y); ctx.scale(s, s); PDRAW[b](t, lvl); if (decoOpen) { ctx.restore(); decoOpen = false; } if (xt) drawExtra(b, xt); ctx.restore(); VOL = v; }
 // add-on marks: a tahini drizzle on sandwiches, and a little badge so orders read at a glance
 function drawExtra(b, xt) {
-  if (xt === 's') { const [ey, w] = b === 'hankSand' ? [-12, 24] : [-66, 15], pts = []; for (let i = 0; i <= 8; i++) pts.push([-w + i * w / 4, ey + (i % 2 ? 3 : -3)]); L(pts, 5, OLC); L(pts, 3, '#f4ead0'); }
+  if (xt === 's') { const [ey, w] = b === 'hankSand' ? [-12, 24] : b === 'sakrFal' ? [-36, 18] : [-66, 15], pts = []; for (let i = 0; i <= 8; i++) pts.push([-w + i * w / 4, ey + (i % 2 ? 3 : -3)]); L(pts, 5, OLC); L(pts, 3, '#f4ead0'); }
+  xBadge(xt);
+}
+function xBadge(xt) {   // the little tahini drop / ice cube mark
   E(23, -22, 11, 11, xt === 's' ? '#fff3d6' : '#e6f6ff', { lw: 2.2, hl: 0.3, v: false });
   if (xt === 's') { B([[23, -33], [28, -23], [26.5, -17], [19.5, -17], [18, -23]], '#f4ead0', { lw: 1.8, hl: 0.4, v: false }); dot(21.5, -21, 1.4, '#ffffff'); }
   else { R(17, -28, 12, 12, 3, '#bfe6ff', { lw: 1.6, hl: 0.5, v: false }); L([[19, -25], [22, -25]], 1.6, '#ffffff'); }

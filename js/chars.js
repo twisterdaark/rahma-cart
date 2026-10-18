@@ -290,6 +290,24 @@ const CH = {
     R(-7, -108, 14, 12, 2, '#ffffff', { lw: 2 }); L([[0, -108], [0, -96]], 1.6);   // buck teeth
     if (m === 1) blush(0, -116, 40, 0.3);
   } },
+  rasoda: { n: 'الرؤوس السودا', vp: 0.7, f: 95, nf: 1, joy: ['كاااو! 🖤', 'الرؤوس السودا راضية'], d(m, t) {
+    // cursed black crows: a tall ragged coat of feathers, a long thin neck and a small narrow head with glowing white eyes
+    const bk = '#221d2a', gl = Math.sin(t * 7.3) > 0.985 ? 4 : 0, tl = Math.sin(t * 1.1) * 0.25 + Math.sin(t * 3.7) * 0.06 + (m === 2 ? -0.2 : 0);
+    glow(0, -110, 130, '#7a3dff', 0.22);   // a faint cursed glow, so they read on dark nights too
+    ctx.save(); ctx.translate(gl, -Math.abs(Math.sin(t * 2)) * 3);   // floats a little, and now and then jumps a few pixels like a bad signal
+    for (const s of [-1, 1]) for (let k = 0; k < 4; k++) { const y = -18 - k * 26, x = s * (50 - k * 6); PL([[x - s * 10, y + 8], [x + s * 12, y - 4], [x - s * 6, y - 14]], bk, { lw: 2 }); }   // ragged feather tips at the sides
+    B([[-50, 0], [-46, -56], [-32, -104], [-12, -126], [12, -126], [32, -104], [46, -56], [50, 0]], bk, { sd: 0.1 });
+    for (let i = 0; i < 4; i++) Q(-30 + i * 18, -96 + (i % 2) * 10, -24 + i * 18, -60, -32 + i * 18, -24, 1.6, '#4e4760', 0.9);
+    ctx.save(); ctx.globalAlpha = m === 1 ? 0.95 : 0.55 + 0.35 * Math.sin(t * 3); L([[-20, -98], [-12, -82], [-18, -68], [-8, -52]], 2.4, '#b45cff'); L([[24, -78], [16, -62], [22, -46]], 2, '#b45cff'); ctx.restore();   // purple cracks of light
+    L([[0, -122], [3, -166]], 12, OLC); L([[0, -122], [3, -166]], 8, bk);   // long thin neck
+    ctx.save(); ctx.translate(3, -184); ctx.rotate(tl);
+    for (let k = 0; k < 3; k++) PL([[-7 + k * 6, -18], [-12 + k * 6, -32 - (k % 2) * 5], [-1 + k * 6, -19]], bk, { lw: 1.8 });   // scruffy crest
+    E(0, 0, 14, 22, bk, { lw: 2.6 });
+    const bp = new Path2D(); bp.moveTo(10, -7); bp.quadraticCurveTo(36, -8, 58, 6); bp.quadraticCurveTo(36, 5, 10, 8); bp.closePath(); ink(bp, '#3a3446', { b: [30, 0, 24], lw: 2.4 });   // a long beak, a little hooked
+    glow(-2, -6, 14, '#efe8ff', 0.7); dot(-2, -6, m === 2 ? 3 : 4.6, '#ffffff'); dot(7, -3, 2.4, '#ffffff');   // two glowing eyes, one bigger
+    ctx.restore();
+    ctx.restore();
+  } },
   diaa: { n: 'د. ضياء العوضي', vp: 0.85, f: 160, rare: true, joy: ['اللي بيحبني يبعت ٣٠٠ جنيه', 'ده كله صحي على فكرة', 'النوتيلا دي طبيعية ١٠٠٪'], d(m, t) {
     const fl = Math.sin(t * 7) * 0.16, wh = '#fbfaf5', sk = '#d9a27a', gal = '#f2f5f8';
     for (const s of [-1, 1]) {   // the hen's big flapping wings
@@ -394,14 +412,51 @@ function drawAH(t, pose, m = 0) {
   }
 }
 // passers-by in the street behind the counter
-const WALKERS = ['hafo', 'aao', 'jab', 'sakr', 'has', 'abkh', 'zarb', 'shamq', 'prince', 'abbas', 'hank', 'floba', 'aaota'];
+const WALKERS = ['hafo', 'aao', 'jab', 'sakr', 'has', 'abkh', 'zarb', 'shamq', 'prince', 'abbas', 'hank', 'floba', 'aaota', 'zool', 'shawqy', 'barber', 'hankL', 'richard', 'rasoda'];
 function walkerBody(w, t) {
-  const ph = t * 8 + w.seed;
+  const ph = (w.ph ?? t * 8) + w.seed, mv = w.v === 0 ? 0 : 1;   // the legs stop when they stop
+  if (w.ch === 'rasoda') { ctx.translate(0, -30 - Math.sin(t * 2 + w.seed) * 6); CH.rasoda.d(0, t); return; }   // the crows float
+  if (w.act === 'astro') {   // in space everyone floats in a helmet with a little jetpack
+    ctx.translate(0, -110 - Math.sin(t * 1.6 + w.seed) * 10); for (const s of [-1, 1]) { ctx.save(); ctx.globalAlpha = 0.7 + 0.3 * Math.sin(t * 20 + s); PL([[s * 22 - 8, 0], [s * 22 + 8, 0], [s * 22, 26 + Math.sin(t * 25) * 6]], '#ffb030', { lw: 1.6 }); ctx.restore(); }
+    CH[w.ch].d(0, t); const [hx, hy, hw] = HEAD[w.ch] || [0, -200, 80], r = hw * 0.9;
+    ctx.beginPath(); ctx.arc(hx, hy + hw * 0.5, r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(200,232,255,.2)'; ctx.fill(); ctx.lineWidth = 6; ctx.strokeStyle = '#e4ecf2'; ctx.stroke(); ctx.lineWidth = 2.4; ctx.strokeStyle = OLC; ctx.stroke();
+    Q(hx - r * 0.6, hy + hw * 0.5 - r * 0.45, hx - r * 0.3, hy + hw * 0.5 - r * 0.8, hx + r * 0.1, hy + hw * 0.5 - r * 0.85, 4, '#ffffff', 0.6); return;
+  }
   if (w.ch === 'sakr') { ctx.translate(0, -8 - Math.abs(Math.sin(ph)) * 4); CH.sakr.d(0, t); return; }
   if (w.ch === 'aao') { ctx.translate(0, -Math.abs(Math.sin(ph * 0.8)) * 30 - 24); CH.aao.d(1, t); return; }
-  for (const s of [-1, 1]) { const a = Math.sin(ph + (s > 0 ? 0 : Math.PI)) * 0.45; ctx.save(); ctx.translate(s * 18, -80); ctx.rotate(a); L([[0, 0], [0, 74]], 16, OLC); L([[0, 0], [0, 74]], 10, '#3a3040'); E(8, 76, 16, 8, '#2a1a12', { lw: 2.4 }); ctx.restore(); }
-  ctx.translate(0, -100 - Math.abs(Math.sin(ph)) * 6);
+  for (const s of [-1, 1]) { const a = Math.sin(ph + (s > 0 ? 0 : Math.PI)) * 0.45 * mv; ctx.save(); ctx.translate(s * 18, -80); ctx.rotate(a); L([[0, 0], [0, 74]], 16, OLC); L([[0, 0], [0, 74]], 10, '#3a3040'); E(8, 76, 16, 8, '#2a1a12', { lw: 2.4 }); ctx.restore(); }
+  ctx.translate(0, -100 - Math.abs(Math.sin(ph)) * 6 * mv);
   CH[w.ch].d(0, t);
+  if (w.act) walkerProp(w, t);
+}
+// what a passer-by carries, drawn in their own space after the body (the head top comes from HEAD)
+function walkerProp(w, t) {
+  const [hx, hy, hw] = HEAD[w.ch] || [0, -200, 80], a = w.act, sw = Math.sin(t * 6 + w.seed), cl = ['#e53935', '#2e7fb8', '#ffd23f', '#e0388a', '#2e9d4a'][Math.floor(w.seed) % 5];
+  if (a === 'bread') { R(hx - 50, hy - 8, 100, 12, 5, '#c8945a', { lw: 2.4 }); for (let i = 0; i < 5; i++) E(hx - 36 + i * 18, hy - 16, 10, 7, '#e0a860', { lw: 1.8, seed: i }); }   // a tray of bread on the head
+  else if (a === 'bag') { Q(56, -44, 68, -68, 80, -44, 3, OLC); R(50, -46, 36, 42, 5, '#f4f0e6', { lw: 2.4 }); E(68, -26, 7, 7, cl, { lw: 1.4 }); }
+  else if (a === 'phone') { R(hx + hw * 0.42, hy + hw * 0.3, 14, 26, 4, '#26262c', { lw: 2 }); R(hx + hw * 0.42 + 3, hy + hw * 0.3 + 4, 8, 16, 2, '#8fd0ff', { ol: false, shade: false }); }
+  else if (a === 'balloon') { const bx = 84 + sw * 3, by = hy - 30 + sw * 4; Q(60, -40, 90, (by - 40) / 2, bx, by + 32, 1.6, OLC); E(bx, by, 26, 32, cl, { lw: 2.4 }); Q(bx - 12, by - 14, bx - 10, by - 22, bx - 2, by - 25, 3, '#ffffff', 0.5); }
+  else if (a === 'corn') { ctx.save(); ctx.translate(58, -50); ctx.rotate(-0.4); E(0, -16, 9, 22, '#f4c430', { lw: 2 }); for (let i = 0; i < 6; i++) L([[-6, -30 + i * 6], [6, -30 + i * 6]], 1, '#c89a10', 0.7); B([[-8, 0], [-14, -18], [0, -8], [14, -18], [8, 0]], '#7ab648', { lw: 1.6 }); ctx.restore(); }   // grilled corn on the Corniche
+  else if (a === 'flag') { const fy = hy - 70; L([[60, -30], [60, fy]], 4, '#8a5a2a'); for (let k = 0; k < 3; k++) PL([[60, fy + k * 14], [110, fy + k * 14 + sw * 5], [110, fy + (k + 1) * 14 + sw * 5], [60, fy + (k + 1) * 14]], ['#c62828', '#ffffff', '#1a1a1a'][k], { lw: 1.6 }); }
+  else if (a === 'drum') { R(-34, -56, 68, 40, 8, '#c62828', { lw: 2.6 }); E(0, -56, 34, 9, '#f4ead0', { lw: 2.2 }); for (const s of [-1, 1]) { const u = Math.max(0, sw * s) * 14; L([[s * 20, -64 - u], [s * 40, -90 - u]], 3.4, '#8a5a2a'); } }
+  else if (a === 'umbrella') { L([[44, -40], [44, hy - 30]], 3, OLC); const p = new Path2D(); p.moveTo(-46, hy - 30); p.quadraticCurveTo(44, hy - 110, 134, hy - 30); p.closePath(); ink(p, cl, { b: [44, hy - 60, 80], lw: 2.6 }); }
+  else if (a === 'lantern') { L([[60, -40], [60, -24]], 2, OLC); glow(60, -4, 26, '#ffd86b', 0.6); PL([[50, -24], [70, -24], [76, -4], [64, 14], [56, 14], [44, -4]], '#d4a020', { lw: 2.2 }); }   // a Ramadan fanous
+}
+const WACT = [[['', 3], ['bread', 2], ['bag', 2], ['phone', 1.5]], [['', 2], ['balloon', 2], ['corn', 2], ['phone', 1.5]], [['flag', 3], ['drum', 1.5], ['', 1]], [['astro', 1]]];   // per place
+function walkerPlan(w) {   // what this passer-by carries and does: it depends on the place, the weather and the season
+  const ai = areaI(), op = WACT[ai].slice();
+  if (G.sea === 'ram' && ai < 3) op.push(['lantern', 3]);
+  if (G.wx === 'rain' && ai < 3) op.push(['umbrella', 6]);
+  let r = Math.random() * op.reduce((a, o) => a + o[1], 0); w.act = (op.find(o => (r -= o[1]) < 0) || op[0])[0];
+  if (w.act === 'astro' || w.ch === 'rasoda') return;
+  const d = Math.random();
+  if (d < (G.wx === 'rain' ? 0.4 : 0.14)) w.v = rnd(110, 140);   // in a hurry
+  else if (d < 0.36) { w.stopX = rnd(CLIPX[0] + 120, CLIPX[1] - 120); w.emo = pick(['😋', '👀', '🤤', '🤔', '😮']); }   // stops to look at the cart
+}
+function drawUfo(t) {   // a little flying saucer over the space station
+  E(0, -74, 40, 32, '#c8f0ff', { lw: 2.6, hl: 0.5 }); E(0, -80, 15, 13, '#8fd14f', { lw: 2 }); dot(-5, -82, 3, '#111'); dot(5, -82, 3, '#111'); L([[0, -93], [4, -104]], 2); dot(4, -105, 3, '#ff5a5a');
+  E(0, -50, 110, 24, '#9aa4b0', { lw: 3 }); for (let i = 0; i < 6; i++) dot(-80 + i * 32, -47, 5, Math.sin(t * 8 + i) > 0 ? '#ffd23f' : '#ff5a5a');
+  if (Math.sin(t * 1.3) > 0.5) { ctx.save(); ctx.globalAlpha = 0.22; PL([[-30, -28], [30, -28], [70, 40], [-70, 40]], '#c8ffb0', { ol: false, shade: false }); ctx.restore(); }
 }
 function drawTuk(t) {
   for (const x of [-58, 70]) { E(x, -26, 24, 24, '#2a2a2a', { lw: 3 }); E(x, -26, 10, 10, '#c0c6cc', { lw: 2 }); }

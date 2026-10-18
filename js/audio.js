@@ -145,9 +145,9 @@ function musicTick() {
 }
 setInterval(musicTick, 80);
 // character voices: a tiny hum in each one's own pitch ("hmm?" for an order, "mm-hm!" when served), never real words
-const VK = { aao: 'a', aaota: 'a', abkh: 'a', shamq: 'e', has: 'e', jab: 'g', dola: 'g', abbas: 'g', zarb: 'g', sakr: 'g', cosmic: 'c' };
+const VK = { aao: 'a', aaota: 'a', abkh: 'a', shamq: 'e', has: 'e', jab: 'g', dola: 'g', abbas: 'g', zarb: 'g', sakr: 'g', rasoda: 'g', cosmic: 'c' };
 function hum(f0, f1, d, when, k) {   // one voiced syllable: a buzzy source through a mouth-shaped filter, with a little vibrato
-  const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(), lfo = AC.createOscillator(), lg = AC.createGain(), v = k === 'e' ? 0.08 : 0.12;
+  const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter(), lfo = AC.createOscillator(), lg = AC.createGain(), v = k === 'e' ? 0.05 : 0.075;
   o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + d);
   lfo.frequency.value = 5.5; lg.gain.value = f0 * (k === 'c' ? 0.07 : 0.02); lfo.connect(lg); lg.connect(o.frequency);
   lp.type = 'lowpass'; lp.frequency.value = k === 'a' ? 1300 : k === 'e' ? 2600 : f0 * (k === 'g' ? 3.5 : 2.6); lp.Q.value = k === 'a' || k === 'e' ? 4 : 0.8;

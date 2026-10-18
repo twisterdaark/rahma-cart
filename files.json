@@ -1,5 +1,5 @@
 {
- "v": "3b1446bc8e97",
+ "v": "00fe96893245",
  "files": [
   {
    "p": "fonts/cairo-arabic.woff2",
@@ -38,7 +38,7 @@
   },
   {
    "p": "index.html",
-   "h": "4286f1bf5dbc1cbc784e2ebdf32308bef3734badfd187cb2607d282783e905c7",
+   "h": "89bfecccce40e9161669dbda5352020c7c6122ddab3a80741437767e1f7f3e69",
    "n": 2066
   },
   {
@@ -48,8 +48,8 @@
   },
   {
    "p": "js/audio.js",
-   "h": "fffcae1a227ba66bf7476c232049afa1c71e99c3a85b8efe6cd8bb2985a96d89",
-   "n": 15387
+   "h": "06e58831bacbc695ef0f3eb930ff3ab2846a3527d48a534cf2129b3230bfe1e4",
+   "n": 15401
   },
   {
    "p": "js/bg.js",
@@ -63,8 +63,8 @@
   },
   {
    "p": "js/chars.js",
-   "h": "8de51510addf157dd064b4eccbe585213b97b47011f3d29abe707d531ead3351",
-   "n": 38166
+   "h": "21ca851231ec9d9809404f35eef8d45d329a2c53e225326b3773e87a703f4836",
+   "n": 45348
   },
   {
    "p": "js/core.js",
@@ -73,8 +73,8 @@
   },
   {
    "p": "js/en.js",
-   "h": "44b2aa0314a73b61df3adf08da57af84eda3ec06cb135ea7675e3bd5cb8cd9a4",
-   "n": 90206
+   "h": "31183193bfe2b16bccd13a95edd286aed622760abddaca480b707947ab8bd311",
+   "n": 92624
   },
   {
    "p": "js/faces.js",
@@ -88,23 +88,23 @@
   },
   {
    "p": "js/products.js",
-   "h": "3ce0a5ad714f9c53efbf74cdc857f615c269779ea3ed5d94ed39fcc1387781f4",
-   "n": 25243
+   "h": "41bcfc8aa305f16e79a3336b5f05258a21292f2dda39c29b2c09c53806a728a7",
+   "n": 26421
   },
   {
    "p": "js/run.js",
-   "h": "53df21029c5591890111c50a627e91d2bb7afa2f2747322958e1efac54016a7b",
-   "n": 54235
+   "h": "aaf1a8cee8e92294353ac136defadbc8f1761a9d3f1c6cff43374e45b6a8f6a3",
+   "n": 56693
   },
   {
    "p": "js/scene.js",
-   "h": "8f24b96934d496f8d23f94e2dabb9b40556e3e8762c03ae1eaddf486472bb9c5",
-   "n": 108608
+   "h": "236a176e2bb0de270a969dec0cf69db48eced34f9cf6cd307a0ff8874a3f3984",
+   "n": 110055
   },
   {
    "p": "js/state.js",
-   "h": "e9fae351f06d07b51e4a9ade7e75d6e20a31ed4ba7e4559a262fb7bdf96a117c",
-   "n": 63980
+   "h": "d5fdfa3a7eaad5489b5735b6c9693e684460259a4db785467d4d3dae40907b2a",
+   "n": 65283
   }
  ]
 }

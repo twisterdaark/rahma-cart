@@ -34,7 +34,7 @@ function newDay() {
 }
 function goHome() { sfx.tap(); if (CHAL) { exitChallenge(); return; } saved = S; save(); fast = false; G = { state: 'title', t: G.t, parts: [], pops: [], coins: [], walkers: G.walkers, walkT: 1 }; dispMoney = S.money; }
 function startPlay() { G.state = 'play'; G.stock = fullStock(); sfx.bell(); if (G.tut) tutEnter();
-  if (fruitOn() && !CHAL && !S.fruitSeen) { S.fruitSeen = 1; toast('🍓🐨 أبو حسيبة جاب فاكهة جديدة للكشك: النجلاوي وكوالا لامبور!', '#ffe38a', 3.5); if (G.ah) { G.ah.say = 'فاكهة طازة 👇'; G.ah.sayT = 3.5; } } }
+  if (fruitOn() && !CHAL && (S.fruitSeen || 0) < 2) { toast(S.fruitSeen ? '🐔 فاكهة جديدة في كشك أبو حسيبة: الزنجوجوكوكو!' : '🍓🐔🐨 أبو حسيبة جاب فاكهة جديدة للكشك: الزنجلاوي والزنجوجوكوكو وكوالا لامبور!', '#ffe38a', 3.5); S.fruitSeen = 2; if (G.ah) { G.ah.say = 'فاكهة طازة 👇'; G.ah.sayT = 3.5; } } }
 function toast(s, c = '#fff3d6', d = 1.8) { G.toast = { s, c, t: d }; }
 function addPop(x, y, s, c, size = 30, life = 1.2) { G.pops.push({ x, y, s, c, size, t: 0, life }); }
 function burst(x, y, n, cols, kind = 'conf', spd = 1) { n = Math.min(n, 160 - G.parts.length); for (let i = 0; i < n; i++) { const a = rnd(0, Math.PI * 2), v = rnd(100, 320) * spd; G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(80, 200), life: rnd(0.7, 1.3), t: 0, c: pick(cols), s: rnd(5, 10), r: rnd(0, 6), vr: rnd(-10, 10), kind }); } }
@@ -100,6 +100,7 @@ const prodOf = key => key && key.startsWith('src:') ? SRC[key.slice(4)].p : G.it
 function takeItem(key) { if (key.startsWith('src:')) { const s = SRC[key.slice(4)]; if (s.st) use(s.st); } else G.items[key] = null; }
 function deliver(c, key) {
   const p = prodOf(key); if (!p) return;
+  if (c.hag === 1) { c.say = c.q === 'note' ? 'ردّ عليا الأول: أسجّلها ولا لأ؟ 📒' : 'ردّ عليا الأول: بنص التمن ولا لأ؟ 🥺'; c.sayT = Math.max(1.6, c.hagT); c.shake = 0.4; sfx.wrong(); G.sel = null; return; }   // he asked something: answer ✓ or ✗ first
   G.sel = null;
   const sx = SLOTX[c.slot];
   const o = c.order.find(o => oKey(o) === p && !o.done);
@@ -173,9 +174,12 @@ function act(key) {
   if (key === 'sauce' || key === 'ice') {
     const xt = key === 'sauce' ? 's' : 'i';
     if (G.sel && !G.sel.startsWith('src:')) { applyExtra(xt, G.sel); return; }
-    if (xt === 's' && (b.st === 'bread' || b.st === 'filled') && !b.sauce) { b.sauce = 1; sfx.squirt(); burst(235, 466, 8, ['#f4ead0', '#ffffff'], 'conf', 0.4); return; }
-    const k = Object.keys(SLOT).find(k => G.items[k] && EXTRAS[xt].on.includes(pid(G.items[k])) && !pex(G.items[k]));
-    if (k) applyExtra(xt, k); else toast(xt === 's' ? 'حط عيش على اللوح أو اختار ساندوتش، وبعدين دوس على الصوص' : 'مفيش مشروب ساقع جاهز للتلج');
+    // only one thing can take it: put it there; more than one: the player picks which
+    const bd = xt === 's' && (b.st === 'bread' || b.st === 'filled') && !b.sauce, ks = Object.keys(SLOT).filter(k => G.items[k] && EXTRAS[xt].on.includes(pid(G.items[k])) && !pex(G.items[k]));
+    if (bd && !ks.length) boardSauce();
+    else if (!bd && ks.length === 1) applyExtra(xt, ks[0]);
+    else if (bd || ks.length) { G.xsel = xt; sfx.tap(); toast(xt === 's' ? 'اختار هتحط الصوص على إيه 👆' : 'اختار هتحط التلج على إيه 👆', '#e6f6ff', 1.4); }
+    else toast(xt === 's' ? 'حط عيش على اللوح أو اختار ساندوتش أو فلافل، وبعدين دوس على الصوص' : 'مفيش مشروب جاهز للتلج');
     return;
   }
   if (key === 'bread') { if (b.st === 'empty' && !G.items.board) { b.st = 'bread'; use('bread'); sfx.pop(0); if (G.tut) tutEvent('bread'); } else toast(G.items.board ? 'شيل اللي على اللوح الأول' : 'العيش على اللوح خلاص'); return; }
@@ -199,9 +203,10 @@ function act(key) {
   if (key === 'radio') nextTape();
   if (key === 'vit') { if (!storeItem(G.sel)) { G.sel = null; if (HOLDS.every(h => G.items[h])) return; toast('اسحب أي طلب جاهز هنا عشان تحفظه'); } }
 }
+function boardSauce() { G.board.sauce = 1; sfx.squirt(); burst(235, 466, 8, ['#f4ead0', '#ffffff'], 'conf', 0.4); }
 function applyExtra(xt, key) {
   const E = EXTRAS[xt], it = key && G.items[key];
-  if (!it || !E.on.includes(pid(it))) { toast(xt === 's' ? 'الصوص للشاورما والساندوتش بس' : 'التلج للمشاريب الساقعة بس'); sfx.wrong(); return false; }
+  if (!it || !E.on.includes(pid(it))) { toast(xt === 's' ? 'الصوص للشاورما والساندوتش والفلافل بس' : 'التلج للمشاريب بس'); sfx.wrong(); return false; }
   if (pex(it)) { toast('عليه ' + EXTRAS[pex(it)].sh + ' خلاص'); return false; }
   G.items[key] = it + '|' + xt; G.born[key] = G.t; G.sel = null; xt === 's' ? sfx.squirt() : sfx.clink();
   const [x, y] = SLOT[key]; burst(x, y - 30, 8, xt === 's' ? ['#f4ead0', '#ffffff'] : ['#bfe6ff', '#ffffff'], 'star', 0.4); return true;
@@ -215,7 +220,7 @@ function updateHelper(dt) {
   h.cd = 0.4; if (G.raid && G.raid.shut > 0.5) return;
   for (const key in SLOT) {
     const p = G.items[key]; if (!p || G.sel === key || (G.drag && G.drag.key === key)) continue;
-    const c = G.slots.find(c => wants(c, p)); if (!c) continue;
+    const c = G.slots.find(c => c && c.hag !== 1 && wants(c, p)); if (!c) continue;   // customers still waiting on a ✓/✗ are left to you
     const [x0, y0] = SLOT[key], sel = G.sel; G.fly.push({ p, x0, y0, x1: SLOTX[c.slot], y1: 200, t: 0 }); deliver(c, key); G.sel = sel;
     h.cd = 3.2; h.happy = 0.8; if (Math.random() < 0.22) { h.st = 'sleep'; h.t = rnd(7, 11); h.say = 'هريّح خمسة 😴'; h.sayT = 1.6; }
     return;
@@ -374,13 +379,19 @@ cv.addEventListener('pointerdown', e => {
   }
   if (G.hlp && G.hlp.st === 'sleep' && Math.abs(x - HLPX) < 42 && y > 228 && y < CT + 12) { wakeHelper(); return; }
   if (!G.tut && x > 866 && y > 140 && y < CT && !fruitAt(x, y)) { ahTap(); return; }
+  if (G.xsel) {   // tahini / ice chosen: this tap says where it goes
+    const xs = G.xsel, at = itemAt(x, y); G.xsel = null;
+    if (at) { applyExtra(xs, at); return; }
+    if (xs === 's' && stationAt(x, y) === 'board' && (G.board.st === 'bread' || G.board.st === 'filled') && !G.board.sauce) { boardSauce(); return; }
+  }
   const it = itemAt(x, y);
   if (it && tutAllows('item', it)) { G.drag = { key: it, x, y, sx: x, sy: y, moved: false }; sfx.pick(); return; }
   const sk = srcAt(x, y);
   if (sk && tutAllows('src')) { const s = SRC[sk]; if (s.st && G.stock[s.st] <= 0) { emptyAsk(s.st); return; } G.drag = { key: 'src:' + sk, x, y, sx: x, sy: y, moved: false }; sfx.pick(); return; }
   if (G.sel) { const c = custAt(x, y); if (c && tutAllows('cust')) { deliver(c, G.sel); return; } }
-  if (!G.tut && G.dirt > 0.04 && y > CT - 34 && y < CT + 10 && x > 140 && x < 860) { G.wipe = { x, y, d: 0 }; return; }
+  if (!G.tut && G.dirt > 0.04 && y > CT - 20 && y < CT + 12 && x > 140 && x < 860) { G.wipe = { x, y, d: 0 }; return; }
   const k = stationAt(x, y);
+  if ((k === 'sauce' || k === 'ice') && !G.sel && !G.tut) { G.drag = { key: 'x:' + (k === 'sauce' ? 's' : 'i'), st: k, x, y, sx: x, sy: y, moved: false }; G.press[k] = 0.18; return; }
   if (k && tutAllows('station', k)) { if (k === 'trash' || k === 'vit' || k === 'sauce' || k === 'ice' || k === 'board' || !G.sel) act(k); else { G.sel = null; act(k); } return; }
   if (!G.tut) G.sel = null;
 });
@@ -388,6 +399,14 @@ cv.addEventListener('pointermove', e => { const p = toGame(e); ptr = p; if (slid
 addEventListener('pointerup', e => {
   if (UPFN) { const f = UPFN; UPFN = null; try { f(); } catch (err) { } }
   slideB = null; G.wipe = null; if (!G.drag) return; const p = toGame(e), d = G.drag; G.drag = null;
+  if (d.key.startsWith('x:')) {   // tahini / ice: a tap works the station, a drag puts it on what it's dropped on
+    if (!d.moved) { act(d.st); return; }
+    const at = itemAt(p.x, p.y), bd = ST.board, xt = d.key[2];
+    if (at) applyExtra(xt, at);
+    else if (xt === 's' && p.x > bd.x && p.x < bd.x + bd.w && p.y > bd.y && p.y < bd.y + bd.h && (G.board.st === 'bread' || G.board.st === 'filled') && !G.board.sauce) boardSauce();
+    else sfx.drop();
+    return;
+  }
   if (!d.moved) { G.sel = G.sel === d.key ? null : d.key; return; }
   const c = custAt(p.x, p.y);
   if (c && tutAllows('cust')) { deliver(c, d.key); return; }
@@ -559,13 +578,18 @@ function updateEvents(dt) {
 }
 // passers-by: neighbours of the hara walking, a tuk-tuk, the bread bike, the gas-cylinder guy, something flying
 function updateWalkers(dt) {
-  G.walkers = (G.walkers || []).filter(w => { w.x += w.v * w.dir * dt; return w.x > CLIPX[0] - 160 && w.x < CLIPX[1] + 160; });
-  G.walkT = (G.walkT ?? 1) - dt; if (G.walkT > 0 || G.walkers.length >= (QL >= 2 ? 1 : 3)) return;
-  G.walkT = rnd(3, 6.5);
+  G.walkers = (G.walkers || []).filter(w => {
+    if (w.stopX != null && (w.x - w.stopX) * w.dir > 0) { w.v0 = w.v; w.v = 0; w.stopX = null; w.stopT = rnd(1.6, 3); }
+    if (w.stopT > 0 && (w.stopT -= dt) <= 0) w.v = w.v0;
+    w.x += w.v * w.dir * dt; w.ph = (w.ph || 0) + dt * w.v * 0.16; return w.x > CLIPX[0] - 160 && w.x < CLIPX[1] + 160; });
+  G.walkT = (G.walkT ?? 1) - dt; if (G.walkT > 0 || G.walkers.length >= (QL >= 2 ? 1 : QL ? 3 : 4)) return;
+  G.walkT = rnd(2.5, 5.5);
   const r = Math.random(), dir = Math.random() < 0.5 ? 1 : -1;
-  const kind = r < 0.55 ? 'walk' : r < 0.68 ? 'tuk' : r < 0.8 ? 'bike' : r < 0.9 ? 'gas' : 'fly';
+  const ai = areaI(), kind = ai === 3 ? (r < 0.8 ? 'walk' : r < 0.9 ? 'fly' : 'ufo') : ai === 2 ? (r < 0.72 ? 'walk' : r < 0.86 ? 'tuk' : r < 0.95 ? 'bike' : 'fly')
+    : ai === 1 ? (r < 0.62 ? 'walk' : r < 0.8 ? 'bike' : r < 0.9 ? 'tuk' : 'fly') : r < 0.55 ? 'walk' : r < 0.68 ? 'tuk' : r < 0.8 ? 'bike' : r < 0.9 ? 'gas' : 'fly';
   const w = { kind, dir, x: dir > 0 ? CLIPX[0] - 120 : CLIPX[1] + 120, y: 262, seed: rnd(0, 9), s: 0.42, v: rnd(40, 60) };
-  if (kind === 'walk') w.ch = pick(WALKERS);
+  if (kind === 'walk') { w.ch = pick(WALKERS); walkerPlan(w); }
+  if (kind === 'ufo') { w.y = rnd(120, 150); w.v = 120; w.s = 0.4; }
   if (kind === 'tuk') { w.v = 140; w.s = 0.5; w.y = 294; }
   if (kind === 'bike') { w.v = 95; w.s = 0.44; w.y = 286; }
   if (kind === 'fly') { w.ch = S.seenDiaa && Math.random() < 0.5 ? 'diaa' : 'dola'; w.y = rnd(150, 175); w.v = 80; w.s = 0.3; }
