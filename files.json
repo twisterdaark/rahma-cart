@@ -1,0 +1,110 @@
+{
+ "v": "3b1446bc8e97",
+ "files": [
+  {
+   "p": "fonts/cairo-arabic.woff2",
+   "h": "f8c2790bba35c6ff34816a2b0cd737f545f23fbf509c1538433e8e8e81d70d6c",
+   "n": 30712
+  },
+  {
+   "p": "fonts/cairo-latin-ext.woff2",
+   "h": "0db86946b44d9fa7a88071c74ae75a2c874845998c467e749d8ecca590230075",
+   "n": 16632
+  },
+  {
+   "p": "fonts/cairo-latin.woff2",
+   "h": "ff64b48b1b800fb2ced52df32d9c8b1a1275893297179dbf403f2aa997751601",
+   "n": 33644
+  },
+  {
+   "p": "fonts/fonts.css",
+   "h": "6b462e05a8dc0aa55f749af3b8c40869c1a12dc631bd3a3587fb04a634fa18be",
+   "n": 4760
+  },
+  {
+   "p": "fonts/lalezar-arabic.woff2",
+   "h": "5d59526995470da0572a021838dd71a1e232509f8a60dd6f16d6d784d7607336",
+   "n": 30036
+  },
+  {
+   "p": "fonts/lalezar-latin-ext.woff2",
+   "h": "89465dd1c58bf92ba704b91706dcd929008a60403f848040b5d3673ccbc55f5b",
+   "n": 8516
+  },
+  {
+   "p": "fonts/lalezar-latin.woff2",
+   "h": "4560d2ec843285266956a502dd0e35d81a038dd16070ef91e8d096c884b71515",
+   "n": 10392
+  },
+  {
+   "p": "index.html",
+   "h": "4286f1bf5dbc1cbc784e2ebdf32308bef3734badfd187cb2607d282783e905c7",
+   "n": 2066
+  },
+  {
+   "p": "js/album.js",
+   "h": "e232654209147faa85349606222ce27de7f4a39faf9a69c61aa68aa388eaf735",
+   "n": 17525
+  },
+  {
+   "p": "js/audio.js",
+   "h": "fffcae1a227ba66bf7476c232049afa1c71e99c3a85b8efe6cd8bb2985a96d89",
+   "n": 15387
+  },
+  {
+   "p": "js/bg.js",
+   "h": "0e3c7dd5a6febc9516d1cec0deed98bfe128cb98eaf5b9a64b403993fc4fdc43",
+   "n": 19698
+  },
+  {
+   "p": "js/boot.js",
+   "h": "d948c81a71679e054ff8e1508fe15ad66d9ae70ab4cd2ecef52230b85c94f5e1",
+   "n": 872
+  },
+  {
+   "p": "js/chars.js",
+   "h": "8de51510addf157dd064b4eccbe585213b97b47011f3d29abe707d531ead3351",
+   "n": 38166
+  },
+  {
+   "p": "js/core.js",
+   "h": "b076705c33b0545c1d4cb8d0d0dbc318d8b5888b721f031f9f9e33dff42727ea",
+   "n": 10025
+  },
+  {
+   "p": "js/en.js",
+   "h": "44b2aa0314a73b61df3adf08da57af84eda3ec06cb135ea7675e3bd5cb8cd9a4",
+   "n": 90206
+  },
+  {
+   "p": "js/faces.js",
+   "h": "f9b3aa57232e4b97b0f667c0935876f962bc4d17d5af144919dfa91013a2d2d1",
+   "n": 5710
+  },
+  {
+   "p": "js/main.js",
+   "h": "0cc28da9b3c0a70a595051e8999e1124af42c816aab4b3d501ed6032df837bde",
+   "n": 16282
+  },
+  {
+   "p": "js/products.js",
+   "h": "3ce0a5ad714f9c53efbf74cdc857f615c269779ea3ed5d94ed39fcc1387781f4",
+   "n": 25243
+  },
+  {
+   "p": "js/run.js",
+   "h": "53df21029c5591890111c50a627e91d2bb7afa2f2747322958e1efac54016a7b",
+   "n": 54235
+  },
+  {
+   "p": "js/scene.js",
+   "h": "8f24b96934d496f8d23f94e2dabb9b40556e3e8762c03ae1eaddf486472bb9c5",
+   "n": 108608
+  },
+  {
+   "p": "js/state.js",
+   "h": "e9fae351f06d07b51e4a9ade7e75d6e20a31ed4ba7e4559a262fb7bdf96a117c",
+   "n": 63980
+  }
+ ]
+}
