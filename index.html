@@ -994,7 +994,7 @@ const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
-function save() { if (CHAL) return; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+function save() { if (CHAL) return; S.svT = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } try { if (CLOUD.user) cloudPush(false); } catch (e) { } }
 try { const o = JSON.parse(localStorage.getItem(KEY + '-opt') || 'null'); if (o) { sfxV = o.sv ?? 0.8; musV = o.mv ?? 0.6; voiceOn = o.vo ?? true; } } catch (e) { }
 function saveOpt() { try { localStorage.setItem(KEY + '-opt', JSON.stringify({ sv: sfxV, mv: musV, vo: voiceOn })); } catch (e) { } }
 const DIFFS = {
@@ -1833,6 +1833,7 @@ function update(dt) {
   if (G.state === 'intro') { G.introT += dt; return; }
   if (G.state === 'end') { if (G.endPh === 'rev') { G.revT += dt; revTick(dt); return; } G.endT += dt; sumTick(dt); const st = G.stars || 0; [0.9, 1.4, 1.9].forEach((tt, i) => { if (i < st && G.endT - dt < tt && G.endT >= tt) { sfx.star(i); burst(380 + i * 100, G.endY + 110, 24, ['#ffd23f', '#ffffff', '#ff8a3d'], 'star'); } }); return; }
   if (G.state === 'wheel') { updWheel(dt); return; }
+  if (G.state === 'title' && !OVL && !CHAL && CLOUD.on && !syncMeta.uid && !S.cloudHint && S.day >= 3 && G.t > 4 && G.state !== 'wheel') { S.cloudHint = 1; save(); toast('☁️ تقدر تحفظ تقدّمك بحساب جوجل من ⚙ الإعدادات', '#ffe9b8', 3.5); }
   if (G.state === 'title' && !OVL && !CHAL && S.day >= 2 && S.tut && S.wheel !== dayKey() && G.t > 1.5) { streakTick(); G.state = 'wheel'; G.whl = { a: 0, v: 0, st: 'idle', t: 0 }; }
   if (G.state !== 'play' || G.paused) return;
   G.coins = G.coins.filter(c => { c.t += dt; if (c.t >= c.d) { moneyBounce = 1; sfx.coin(c.k); return false; } return true; });
@@ -2769,11 +2770,11 @@ function bigBtn(x, y, w, h, label, fn, col = '#e8304a', fs = 26, id = '') {
   ctx.restore();
   btn(x, y, w, h + 6, () => { sfx.tap(); buzz(10); fn(); }, id);
 }
-function pill(x, y, w, h, label, fn, col = '#f0e2c4', tc = '#5a3a20') {   // calm secondary button: no pulse, small shadow
+function pill(x, y, w, h, label, fn, col = '#f0e2c4', tc = '#5a3a20', id = '') {   // calm secondary button: no pulse, small shadow
   ctx.fillStyle = 'rgba(60,30,10,.28)'; ctx.fill(RRp(x, y + 3, w, h, 12));
   const p = RRp(x, y, w, h, 12); ctx.fillStyle = col; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p);
   T(label, x + w / 2, y + h / 2 + 1, fit(label, w - 14, 15, FD), tc, FD);
-  btn(x, y, w, h + 3, () => { sfx.tap(); buzz(8); fn(); });
+  btn(x, y, w, h + 3, () => { sfx.tap(); buzz(8); fn(); }, id);
 }
 function dim(a = 0.7) { ctx.fillStyle = `rgba(20,8,2,${a})`; ctx.fillRect(0, 0, W, H); }
 function drawTitle(t) {
@@ -3055,7 +3056,12 @@ function drawSettings(t) {
   });
   bigBtn(510, 408, 250, 52, 'صوت الزباين: ' + (voiceOn ? 'شغال' : 'مقفول'), () => { voiceOn = !voiceOn; saveOpt(); }, '#2e7fb8', 18, 'ovl');
   bigBtn(200, 408, 250, 52, 'رجوع', () => { OVL = null; }, '#8a5a3c', 22, 'ovl');
-  if (PWA && !standalone()) bigBtn(330, 464, 300, 38, '📲 نزّلها على الموبايل كأبلكيشن', () => { UPFN = installApp; }, '#5b3cc4', 16, 'ovl');
+  if (CLOUD.on) {
+    cloudInit(); const u = CLOUD.user;
+    if (u) { pill(250, 350, 350, 40, '☁️ محفوظ على جوجل • ' + (u.displayName || u.email || '').slice(0, 18), () => { toast('تقدّمك بيتحفظ على حسابك لوحده ☁️', '#9be37a'); }, '#e6f6dc', '#1e5a2a', 'ovl'); pill(610, 350, 100, 40, 'خروج', cloudSignOut, '#f6ece0', '#9a5a3a', 'ovl'); }
+    else pill(280, 350, 400, 40, CLOUD.st === 'busy' ? '⏳ استنى...' : '🔐 احفظ تقدّمك بحساب جوجل', () => { UPFN = cloudSignIn; }, '#ffffff', '#2a1a10', 'ovl');
+  }
+  if (PWA && !standalone()) pill(330, 464, 300, 34, '📲 نزّلها على الموبايل كأبلكيشن', () => { UPFN = installApp; }, '#efe6ff', '#3a2a6a', 'ovl');
 }
 function wrapT(s, x, y, maxW, size, c, lh, font = FB) {
   ctx.font = (font === FB ? '800 ' : '') + size + 'px ' + font; const lines = []; let cur = '';
@@ -3295,6 +3301,66 @@ if (PWA) {
   } catch (e) { }
   addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEv = e; });
 }
+// Google account save (Firebase): the save lives in saves/{uid}; only on the game's own site
+const FB_CFG = { apiKey: 'AIzaSyBOmkjc-PtVVys1RLlnJElJXnlYQsZz_EE', authDomain: 'rahma-cart-50088.firebaseapp.com', projectId: 'rahma-cart-50088', storageBucket: 'rahma-cart-50088.firebasestorage.app', messagingSenderId: '735409593798', appId: '1:735409593798:web:9a880de0ca7aec474fe6c7' };
+const FBV = 'https://www.gstatic.com/firebasejs/10.12.2/', SYNCK = 'rahma-cart-sync';
+const CLOUD = { on: PWA, st: 'off', user: null, fb: null, pushT: 0, dirty: false };   // st: off, loading, out, busy, in
+let syncMeta = {}; try { syncMeta = JSON.parse(localStorage.getItem(SYNCK) || '{}') || {}; } catch (e) { }
+const setMeta = m => { syncMeta = m; try { localStorage.setItem(SYNCK, JSON.stringify(m)); } catch (e) { } };
+function cloudInit() {
+  if (!CLOUD.on || CLOUD.st !== 'off') return; CLOUD.st = 'loading';
+  Promise.all(['firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'].map(f => import(FBV + f))).then(([A, U, F]) => {
+    const app = A.initializeApp(FB_CFG); CLOUD.fb = { U, F, auth: U.getAuth(app), db: F.getFirestore(app) }; CLOUD.st = 'out';
+    U.onAuthStateChanged(CLOUD.fb.auth, u => { CLOUD.user = u; CLOUD.st = u ? 'in' : 'out'; if (u) cloudPull(); });
+  }).catch(() => { CLOUD.st = 'fail'; });
+}
+function cloudSignIn() {   // runs on pointerup so the browser lets the Google window open
+  const f = CLOUD.fb; if (!f) { if (CLOUD.st === 'fail') CLOUD.st = 'off'; toast('لسه بيحمّل، جرّب كمان ثانية ⏳'); cloudInit(); return; }
+  CLOUD.st = 'busy';
+  f.U.signInWithPopup(f.auth, new f.U.GoogleAuthProvider()).then(() => { sfx.fanfare(); toast('☁️ دخلت بحساب جوجل! تقدّمك هيتحفظ عليه', '#9be37a', 3); })
+    .catch(e => { CLOUD.st = CLOUD.user ? 'in' : 'out'; const c = (e && e.code) || ''; if (!/cancelled|closed/.test(c)) toast('تسجيل الدخول مكملش 😕 ' + c.replace('auth/', ''), '#ffd0c8', 3.5); });
+}
+function cloudSignOut() { const f = CLOUD.fb; if (f) f.U.signOut(f.auth).then(() => toast('خرجت من حساب جوجل، والتقدّم لسه على الجهاز ده')); }
+function cloudPush(now) {
+  const f = CLOUD.fb, u = CLOUD.user; if (!f || !u) return;
+  if (!now && Date.now() - CLOUD.pushT < 15000) { CLOUD.dirty = true; return; }   // at most every 15 s; the timer below sends the rest
+  const src = REAL || S, t = src.svT || Date.now(); CLOUD.pushT = Date.now(); CLOUD.dirty = false;
+  f.F.setDoc(f.F.doc(f.db, 'saves', u.uid), { s: JSON.stringify(src), t, day: src.day, money: src.money, name: src.name || '' }).then(() => setMeta({ uid: u.uid, at: t })).catch(() => { CLOUD.dirty = true; });
+}
+setInterval(() => { if (CLOUD.dirty && CLOUD.user && Date.now() - CLOUD.pushT >= 15000) cloudPush(true); }, 5000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && CLOUD.dirty && CLOUD.user) cloudPush(true); });
+function cloudPull() {   // after sign-in: keep whichever side moved on, and ask only when both did
+  const f = CLOUD.fb, u = CLOUD.user; if (!f || !u) return;
+  f.F.getDoc(f.F.doc(f.db, 'saves', u.uid)).then(d => {
+    const r = d.exists() ? d.data() : null, loc = REAL || S, mine = syncMeta.uid === u.uid;
+    if (!r || !r.s) return cloudPush(true);
+    if (r.t === loc.svT) return setMeta({ uid: u.uid, at: r.t });
+    if (mine && syncMeta.at === loc.svT) return r.t > loc.svT ? cloudAdopt(r) : cloudPush(true);
+    if (mine && syncMeta.at === r.t) return cloudPush(true);
+    if (!loc.svT || (loc.day <= 1 && !loc.life)) return cloudAdopt(r);
+    cloudAsk(r);
+  }).catch(() => toast('مقدرتش أوصل للحفظ على جوجل دلوقتي 😕', '#ffd0c8'));
+}
+function cloudAdopt(r) {
+  try {
+    const o = JSON.parse(r.s); if (CHAL) exitChallenge();
+    S = load(o); S.svT = r.t; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } setMeta({ uid: CLOUD.user.uid, at: r.t });
+    saved = S; dispMoney = S.money; fast = false; OVL = null; bgDirty = true; G = { state: 'title', t: G.t, parts: [], pops: [], coins: [], walkers: G.walkers, walkT: 1 };
+    toast('☁️ اتحمّل تقدّمك من جوجل: اليوم ' + ar(S.day), '#9be37a', 3);
+  } catch (e) { }
+}
+function cloudAsk(r) {
+  if (document.getElementById('nm')) return;
+  const loc = REAL || S, box = document.createElement('div'), b = 'margin:12px 6px 0;font:800 17px Cairo,Tahoma,sans-serif;color:#fff;border:3px solid #1c120c;border-radius:12px;padding:6px 18px;';
+  box.id = 'nm'; box.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,8,2,.7);z-index:5';
+  box.innerHTML = '<div style="background:#fff3d6;border:4px solid #1c120c;border-radius:18px;padding:18px 22px;text-align:center;direction:rtl;max-width:84vw;font:800 17px/1.8 Cairo,Tahoma,sans-serif;color:#3a1d0e">☁️ لقيت تقدّم تاني على حساب جوجل<br>'
+    + '<span style="font-weight:600">على جوجل: اليوم ' + ar(r.day) + ' • ' + ar(r.money) + ' ج<br>على الجهاز ده: اليوم ' + ar(loc.day) + ' • ' + ar(loc.money) + ' ج</span><br>'
+    + '<button data-k="c" style="' + b + 'background:#2e7fb8">كمّل من جوجل</button><button data-k="h" style="' + b + 'background:#2e9d4a">خلّي اللي هنا</button></div>';
+  document.body.appendChild(box);
+  box.querySelector('[data-k=c]').onclick = () => { box.remove(); cloudAdopt(r); };
+  box.querySelector('[data-k=h]').onclick = () => { box.remove(); cloudPush(true); };
+}
+if (CLOUD.on && syncMeta.uid) setTimeout(cloudInit, 800);   // signed in before: reconnect and sync on start
 function installApp() {
   if (instEv) { const e = instEv; instEv = null; e.prompt(); e.userChoice.then(r => { if (r.outcome === 'accepted') toast('اتنزلت! هتلاقيها على الشاشة الرئيسية 🎉', '#9be37a'); }).catch(() => { }); return; }
   infoBox(IOS ? 'من سفاري دوس على زرار المشاركة ⬆️ تحت، وبعدين اختار <b>إضافة إلى الشاشة الرئيسية</b> (Add to Home Screen)' : 'من قايمة المتصفح ⋮ فوق اختار <b>تثبيت التطبيق</b> (Install app) أو Add to Home screen');
