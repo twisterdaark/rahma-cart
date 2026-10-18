@@ -990,7 +990,7 @@ function speak(text, pitch) { if (!voiceOn || sfxV <= 0 || !arVoice) return; try
 const KEY = 'rahma-cart-v4';
 const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store: 0, ah: 0 }, menu: {}, help: {}, tapes: { rahma: 1 }, tape: 'rahma', tut: 0, stars: {}, best: 0, diff: null, seenDiaa: 0,
   extras: {}, served: {}, album: {}, cos: { aw: 'red', lights: 0, neon: 0, gold: 0 }, cosOwn: { red: 1 }, name: '', story: 0, fin: 0, life: 0, chBest: null, meal: 0, rivalW: 0,
-  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0, wed: 0, qst: 0, ghost: 0, days: 0, bestDay: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null, quest: {}, nightSeen: 0, strk: { k: '', n: 0, b: 0 }, snaps: [], sold: {}, codes: {}, diaaNext: 0 });
+  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0, wed: 0, qst: 0, ghost: 0, days: 0, bestDay: 0, recon: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null, quest: {}, nightSeen: 0, strk: { k: '', n: 0, b: 0 }, snaps: [], sold: {}, codes: {}, diaaNext: 0, br: 0, ch2: 0, gifts: [], upset: null });
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
@@ -1126,12 +1126,15 @@ function discover(k) {
 // regulars: every happy visit adds friendship; friends wait longer, tip more, and bring a gift at each new level
 const FRL = [6, 18, 40], FRN = ['لسه جديد', 'زبون دايم', 'صاحبك', 'أعز أصحابك'];
 const frLv = ch => { const p = (S.fr && S.fr[ch]) || 0; return p >= FRL[2] ? 3 : p >= FRL[1] ? 2 : p >= FRL[0] ? 1 : 0; };
+const GIFT = { hafo: ['🪴', 'زرعة'], aao: ['📣', 'ميكروفون'], aaota: ['🎀', 'فيونكة'], hank: ['📹', 'كاميرا'], zarb: ['🧸', 'دبدوب'], jab: ['🌶️', 'شطة'], sakr: ['🍬', 'بونبوني'], has: ['🎵', 'نوتة مزيكا'],
+  zool: ['🏺', 'زير'], floba: ['🥖', 'عيش فينو'], abkh: ['⏰', 'منبّه'], prince: ['👑', 'تاج'], abbas: ['🏋️', 'دمبل'], shawqy: ['🍦', 'آيس كريم'], shamq: ['🎈', 'بلونة'], dola: ['🪁', 'طيارة ورق'] };
 function befriend(c, sx) {
   if (CH[c.ch].vip || CH[c.ch].rare || CH[c.ch].dlv || c.legend) return;
-  const l0 = frLv(c.ch); S.fr[c.ch] = (S.fr[c.ch] || 0) + 1 + (c.hagOk ? 1 : 0) + (c.quest ? 3 : 0);
+  const l0 = frLv(c.ch); S.fr[c.ch] = (S.fr[c.ch] || 0) + 1 + (c.hagOk ? 1 : 0) + (c.quest || c.upset ? 3 : 0);
   const l1 = frLv(c.ch); if (l1 <= l0) return;
   const g = [0, 30, 60, 120][l1]; S.money += g; S.life += g;
-  addPop(sx, 262, '❤️ هدية +' + ar(g) + ' ج', '#ffb3d0', 22, 1.8); toast('❤️ ' + CH[c.ch].n + ' بقى ' + FRN[l1] + '! جابلك هدية ' + ar(g) + ' ج', '#ffd0ea');
+  const gf = l1 === 3 && GIFT[c.ch] && !S.gifts.includes(c.ch); if (gf) { S.gifts.push(c.ch); bgDirty = true; moment(5, c.ch, 'هدية!', 'جبتلك ' + GIFT[c.ch][1] + ' ' + GIFT[c.ch][0] + ' تتحط على العربية، عشان احنا صحاب ❤️'); }
+  addPop(sx, 262, '❤️ هدية +' + ar(g) + ' ج', '#ffb3d0', 22, 1.8); toast('❤️ ' + CH[c.ch].n + ' بقى ' + FRN[l1] + '! جابلك ' + (gf ? GIFT[c.ch][1] + ' ' + GIFT[c.ch][0] + ' للعربية و' : 'هدية ') + ar(g) + ' ج', '#ffd0ea', gf ? 3.2 : 1.8);
   sfx.vip(); burst(sx, 160, 16, ['#ff8ae8', '#ffffff'], 'heart', 0.8);
 }
 // haggling: half price for a happy, patient customer, or full price and a grumpy one
@@ -1180,7 +1183,7 @@ function newsHint(d, pl) {
   if (legend) return 'بكره الرحمة الكونية نازلة الحارة بطلبات كتير 🌟';
   if (sea === 'ram' && seasonOf(d - 1) !== 'ram') return 'رمضان على الأبواب، بكره الفوانيس هتنوّر 🌙';
   if (sea === 'eid') return 'بكره العيد! الكحك عند أبو حسيبة والبقشيش الضعف 🎉';
-  if (!sea && d >= 6 && d % 3 === 0) return 'سكرتاعوط بيقول إنه هيفتح عربية قصادك بكره 😤';
+  if (!sea && d >= 6 && d % 3 === 0 && S.ch2 < 4) return 'سكرتاعوط بيقول إنه هيفتح عربية قصادك بكره 😤';
   if (pl && pl.night) return 'بكره سهرة لنص الليل… وبيقولوا فيه زباين مش من الدنيا بتظهر 👻';
   if (pl && pl.ev) return { wed: 'بكره فيه فرح في الحارة 💍 جهّز شاورما كتير', match: 'بكره ماتش الرحمة الكبير ⚽ هتبقى زحمة', power: 'شركة الكهربا بتقول ممكن تقطع بكره ⚡', raid: 'البلدية ناوية تعمل كبسة بكره 🚨' }[pl.ev.k];
   if (pl && pl.wx) return pl.wx === 'hot' ? 'الأرصاد: بكره حر نار ☀️ الساقع هيكسّر' : 'الأرصاد: بكره مطر 🌧 جهّز الشاي';
@@ -1307,7 +1310,7 @@ function served(ch, x, y) {
 // cart cosmetics
 const AWN = { red: { n: 'تندة حمرا', c: ['#d7263d', '#fff6ec'], cost: 0 }, green: { n: 'تندة خضرا', c: ['#2e9d4a', '#fff6ec'], cost: 80 }, blue: { n: 'تندة زرقا', c: ['#2e6ab8', '#ffe9b8'], cost: 80 }, cosmic: { n: 'تندة كونية', c: ['#5b3cc4', '#ffd86b'], cost: 150 } };
 const awCols = () => S.cos.gold ? ['#c9961a', '#2a1a0a'] : (AWN[S.cos.aw] || AWN.red).c;
-const bgKey = () => areaI() + S.cos.aw + S.cos.gold + (S.cos.neon ? S.name : '') + S.title + '|' + S.grow;
+const bgKey = () => areaI() + S.cos.aw + S.cos.gold + (S.cos.neon ? S.name : '') + S.title + '|' + S.grow + S.gifts.join();
 // Abu Hasiba's debt story: a short scene when the cart moves, and a finale when it's paid off
 const DEBT = 3000;
 const STORY = [
@@ -1316,23 +1319,28 @@ const STORY = [
   [['bird', 'ماشي يا أبو حسيبة، ادفع ولا هبلّغ البلدية!'], ['ah', 'هنقف جنب الاستاد، يوم الماتش الزحمة دهب ⚽'], ['ah', 'وخلي بالك، البلدية بتكبس فجأة. لو شفت المفتش اقفل بسرعة']],
   [['ah', 'مفيش حتة على الأرض سكرتاعوط مش عارفها...'], ['ah', 'عشان كده طلعنا الفضاء 🚀 الرحمة الكونية هي اللي عزمتنا'], ['bird', '...أنا معايا جناحات على فكرة']],
   [['ah', 'سددنا الدين كله! الكشك بقى بتاعنا 🎉'], ['bird', 'مبروك... طب ممكن ساندوتش حافوزليق على الحساب؟'], ['ah', 'على الحساب لأ 😼 وخد انت يا معلم ٢٠٠ جنيه مكافأة']],
+  [['bird', 'فاكرين نفسكم كسبتوا؟ أنا فتحت سلسلة عربيات في كل حتة 😏'], ['ah', 'سلسلة؟! يبقى احنا كمان نفتح فرع تاني!'], ['ah', 'الفرع التاني في السوق تحت الترقيات 🏪 بيكسبلك فلوس كل يوم لوحده']],
+  [['ah', 'الفرع التاني اتفتح! 🎉 والجعبوق هو اللي ماسكه'], ['ah', 'كل يوم الفرع هيبعتلك فلوس، وكل ما تكبّره يكسب أكتر'], ['bird', 'إزاي عربياتي بتخسر وانتو بتكسبوا؟! 😟']],
+  [['bird', 'يا أبو حسيبة... السلسلة بتاعتي فلّست 😢'], ['bird', 'ممكن أشتغل معاكم؟ بطير وأوصّل الطلبات بسرعة'], ['ah', 'هفكّر... كبّر الفرع لآخره الأول وبعدين نشوف 😼']],
+  [['ah', 'الفرع بقى أكبر فرع في البلد كلها! 🏆'], ['bird', 'خلاص، أنا معاكم. مفيش عربيات قصادكم تاني 🤝'], ['ah', 'أهلا بيك في عيلة الرحمة يا معلم، وخد انت كمان ٥٠٠ جنيه 🎉']],
 ];
 function storyQueue() {
   const q = [], ai = areaI();
   if (S.story === 0) { q.push(0); S.story = 1; }
   if (ai > 0 && S.story <= ai) { q.push(ai); S.story = ai + 1; }
   if (S.life >= DEBT && !S.fin) { q.push(4); S.fin = 1; }
+  if (S.fin && !q.includes(4)) { const c = S.ch2, b = S.br; if (c === 0 || (c === 1 && b >= 1) || (c === 2 && b >= 3) || (c === 3 && b >= 5)) { q.push(5 + c); S.ch2 = c + 1; } }
   if (q.length) save();
   return q;
 }
 function storyNext() {
   G.storyL++; G.storyT = 0;
   const sc = STORY[G.storyQ[0]];
-  if (G.storyL >= sc.length) { if (G.storyQ[0] === 4) storyReward(); G.storyQ.shift(); G.storyL = 0; }
+  if (G.storyL >= sc.length) { if (G.storyQ[0] === 4 || G.storyQ[0] === 8) storyReward(G.storyQ[0] === 8 ? 500 : 200); G.storyQ.shift(); G.storyL = 0; }
   if (!G.storyQ.length) { G.state = 'intro'; G.introT = 0; return; }
   const ln = STORY[G.storyQ[0]][G.storyL]; ln[0] === 'ah' ? sfx.meow() : sfx.squawk();
 }
-function storyReward() { S.money += 200; dispMoney = S.money - 200; save(); sfx.fanfare(); burst(480, 300, 40, ['#ffd23f', '#ffffff', '#ff8ae8'], 'star', 1.2); }
+function storyReward(v = 200) { S.money += v; dispMoney = S.money - v; save(); sfx.fanfare(); burst(480, 300, 40, ['#ffd23f', '#ffffff', '#ff8ae8'], 'star', 1.2); }
 // daily challenge
 function startChallenge(k) {
   if (CHAL) return;
@@ -1431,7 +1439,8 @@ let dispMoney = S.money, moneyBounce = 0, ptr = { x: 0, y: 0 }, OVL = null, slid
 const fullStock = () => { const o = {}; for (const k in STOCK) o[k] = capOf(k); return o; };
 function newDay() {
   const legend = !CHAL && S.day % 7 === 0, sea = !CHAL && !legend ? seasonOf(S.day) : null;
-  const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0, pl = !CHAL && S.pre && S.pre.d === S.day ? S.pre : planDay(S.day), wx = pl.wx;
+  const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0 && S.ch2 < 4, pl = !CHAL && S.pre && S.pre.d === S.day ? S.pre : planDay(S.day), wx = pl.wx;
+  if (!CHAL) for (const k in GIFT) if (frLv(k) >= 3 && !S.gifts.includes(k)) S.gifts.push(k);   // friends made before gifts existed
   if (!CHAL) { if (pl.night) S.nightSeen = 1; if (pl.ev && pl.ev.k === 'wed') S.st.wed++; }
   if (!CHAL) S.pre = S.pre && S.pre.d === S.day + 1 ? S.pre : planDay(S.day + 1);
   let noteR = null;   // yesterday's tab: friends are likelier to come back and pay double
@@ -1453,8 +1462,8 @@ function newDay() {
     sea, wx, rival: rival ? { e: 0 } : null, iftar: sea === 'ram' ? { at: 40, on: 0 } : null, iftarT: 0, meals: 0,
     noteR, dirt: 0, dirtN: 0, wipe: null, revs: [], news: !CHAL && S.day >= 2 ? [{ at: 24, s: pick(NEWS) }].concat(hint ? [{ at: 58, s: hint }] : []) : [],
     mk: mkFor(S.day), dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [],
-    night: !!pl.night, ghostQ: pl.night ? [grnd(26, 36), grnd(56, 66)] : [], qst: !CHAL && !legend && !pl.night && S.day >= 4 ? pickQuest() : null, moment: null, lastCh: null };
-  if (!CHAL) { G.ms = mkMissions(); G.forceThief = G.ms.some(m => m.k === 'thief'); const q = storyQueue(); if (q.length) { G.storyQ = q; G.state = 'story'; } }
+    night: !!pl.night, ghostQ: pl.night ? [grnd(26, 36), grnd(56, 66)] : [], qst: !CHAL && !legend && !pl.night && S.day >= 4 ? pickQuest() : null, upQ: !CHAL && !legend && S.upset && CH[S.upset.ch] ? { ch: S.upset.ch, at: rnd(14, 34), on: 0 } : null, moment: null, lastCh: null };
+  if (!CHAL) { G.ms = mkMissions(); G.forceThief = G.ms.some(m => m.k === 'thief'); const q = storyQueue(); if (q.length) { G.storyQ = q; G.state = 'story'; } if (S.ch2 >= 4) G.rival = null; }
   dispMoney = S.money;
 }
 function goHome() { sfx.tap(); if (CHAL) { exitChallenge(); return; } saved = S; save(); fast = false; G = { state: 'title', t: G.t, parts: [], pops: [], coins: [], walkers: G.walkers, walkT: 1 }; dispMoney = S.money; }
@@ -1464,7 +1473,7 @@ function addPop(x, y, s, c, size = 30, life = 1.2) { G.pops.push({ x, y, s, c, s
 function burst(x, y, n, cols, kind = 'conf', spd = 1) { n = Math.min(n, 160 - G.parts.length); for (let i = 0; i < n; i++) { const a = rnd(0, Math.PI * 2), v = rnd(100, 320) * spd; G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(80, 200), life: rnd(0.7, 1.3), t: 0, c: pick(cols), s: rnd(5, 10), r: rnd(0, 6), vr: rnd(-10, 10), kind }); } }
 function makeCust(ch, order, slot, tr = null) {
   const vip = CH[ch].vip, rare = CH[ch].rare, max = patienceFor(order.length) * (vip ? 0.8 : rare ? 1.5 : 1) * (tr === 'rush' ? 0.55 : 1) * (1 + 0.1 * frLv(ch));
-  G.slots[slot] = { ch, order: order.map(p => ({ p: pid(p), x: pex(p), done: false })), slot, st: 'in', t: 0, pat: max, max, say: null, sayT: 0, shake: 0, vip: vip || rare, tr, pickT: tr === 'picky' ? rnd(3, 6) : 0 };
+  G.slots[slot] = { ch, order: order.map(p => ({ p: pid(p), x: pex(p), done: false })), slot, st: 'in', t: 0, pat: max, max, say: null, sayT: 0, shake: 0, vip: vip || rare, tr, pickT: tr === 'picky' ? rnd(3, 6) : 0, acc: vip || rare ? '' : accPick(ch) };
   sfx.talk(CH[ch].f); if (vip) { sfx.vip(); toast('✨ الرحمة الكونية وصلت! بتدفع ٣ أضعاف', '#ffe38a'); }
   if (rare) { sfx.cluck(); sfx.vip(); G.slots[slot].say = 'عايز ' + order.map(oName).join(' و '); G.slots[slot].sayT = 3; G.diaaHint = 9; if (G.ah) { G.ah.say = 'طلباته عندي هنا 👆'; G.ah.sayT = 3.5; } toast('🐔 د. ضياء وصل راكب الفرخة! طلباته في كشك أبو حسيبة 👉', '#ffe38a'); }
   speak('عايز ' + order.map(oName).join(' و '), CH[ch].vp);
@@ -1560,11 +1569,12 @@ function complete(c) {
   for (const o of c.order) S.sold[o.p] = (S.sold[o.p] || 0) + (o.n || 1); S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
   befriend(c, sx); G.lastCh = c.ch;
   if (c.quest && !CHAL) { S.quest[c.ch] = 1; S.st.qst++; const r = 50 + 10 * S.day; S.money += r; S.life += r; G.earned += r; addPop(sx, 262, '📜 مكافأة الحكاية +' + ar(r) + ' ج', '#ffe9b8', 22, 2); toast('📜 ' + CH[c.ch].n + ': ' + QST[c.ch][1], '#ffe9b8', 4.2); moment(5, c.ch, 'حكاية!', QST[c.ch][1]); }
+  if (c.upset && !CHAL) { const r = 25 + 4 * S.day; S.money += r; S.life += r; G.earned += r; S.st.recon++; addPop(sx, 262, '🤝 اتصالحتوا +' + ar(r) + ' ج', '#9be37a', 22, 2); sfx.combo(3); moment(5, c.ch, 'صافيين!', 'رجع زعلان ومشي مبسوط… الأكل الحلو بيصالح 🤝'); }
   if (c.wed) { const nq = 20 + S.day * 4; S.money += nq; S.life += nq; G.earned += nq; addPop(sx, 262, '💸 النقطة +' + ar(nq) + ' ج', '#ffd0ea', 24, 2); sfx.zag(); burst(sx, 150, 30, ['#ff8ae8', '#ffffff', '#ffd23f'], 'heart', 1); moment(6, c.ch, 'زغروطة!', 'أحلى فرح في الحارة، وأكلك كان نجم الليلة 💍'); }
   if (c.ghost) moment(4, c.ch, 'بخخخ!', 'جيت من نص الليل… وأكلك رجّعني للدنيا 👻');
   if (c.legend && c.waves > 0) { c.waves--; c.order = legOrder().map(p => ({ p: pid(p), x: pex(p), done: false })); c.pat = c.max; c.t = 0; c.say = 'كمان! 🌌'; c.sayT = 1.6; }
   else {
-    c.st = 'happy'; c.t = 0; c.say = G.sea === 'eid' && Math.random() < 0.5 ? 'كل سنة وانت طيب 🎉' : G.sea === 'ram' && Math.random() < 0.3 ? 'رمضان كريم 🌙' : pick(CH[c.ch].joy); c.sayT = 99;
+    c.st = 'happy'; c.t = 0; c.say = c.upset ? 'خلاص صافيين يا معلم 🤝' : G.sea === 'eid' && Math.random() < 0.5 ? 'كل سنة وانت طيب 🎉' : G.sea === 'ram' && Math.random() < 0.3 ? 'رمضان كريم 🌙' : pick(CH[c.ch].joy); c.sayT = 99;
     if (c.legend) { moment(7, 'cosmic', 'أسطوري!', 'الكون كله شبعان النهارده بفضلك 🌌'); S.st.leg++; const b = 40 + S.day * 6; S.money += b; S.life += b; G.bonus += b; addPop(480, 130, '🌟 مكافأة أسطورية +' + ar(b) + ' ج', '#ffe38a', 30, 2.2); sfx.fanfare(); }
   }
   const rating = f > 0.66 ? ['تحفة!', '#ffd23f'] : f > 0.36 ? ['حلو!', '#9be37a'] : ['ماشي', '#ffe9b8'];
@@ -1877,7 +1887,7 @@ function update(dt) {
     else if (c.st === 'run') { c.rx = c.dir * Math.pow(Math.min(1, c.t / 1.8), 2) * 560; if (c.t > 1.8) { toast('النصاب هرب بـ' + ar(c.due) + ' ج 😤', '#ffd0c8'); G.slots[i] = null; } }
     else if (c.st === 'wait' && !tut && isFinite(c.max) && !shut) {
       c.pat -= dt * (G.dirt >= 0.5 ? 1.2 : 1);
-      if (c.pat <= 0) { c.st = 'angry'; c.t = 0; c.say = pick(['مفيش رحمة!', 'أنا ماشي!', 'إيه البطء ده؟!']); c.sayT = 99; G.angry++; if (G.revs) G.revs.push({ ch: c.ch, k: G.dirt >= 0.5 ? 'dirty' : 'angry' });
+      if (c.pat <= 0) { c.st = 'angry'; c.t = 0; c.say = pick(['مفيش رحمة!', 'أنا ماشي!', 'إيه البطء ده؟!']); c.sayT = 99; G.angry++; if (!CHAL && POOL.includes(c.ch) && !c.ghost && !c.quest) { if (c.upset) { S.fr[c.ch] = Math.max(0, (S.fr[c.ch] || 0) - 4); c.say = 'كده خلاص... 💔'; } else S.upset = { ch: c.ch }; } if (G.revs) G.revs.push({ ch: c.ch, k: G.dirt >= 0.5 ? 'dirty' : 'angry' });
         if (c.dlv) c.say = 'الزبون لغى الطلب! 😤';
         if (CHAL && CHAL.endless && !(G.overT > 0)) { CHAL.strikes++; G.shake = 0.3; if (CHAL.strikes >= 3) { G.overT = 1.4; toast('❌❌❌ ٣ زباين مشيوا زعلانين! خلصت', '#ffd0c8'); } }
         if (G.rival && !c.dlv) { const v = c.order.reduce((s, o) => s + PROD[o.p].price, 0); G.rival.e += v; c.say = 'هروح لسكرتاعوط! 😤'; addPop(RIVX, 150, '+' + ar(v) + ' ج لسكرتاعوط', '#ff8a8a', 18, 1.4); } if (G.combo >= 2) addPop(480, 250, 'الكومبو راح!', '#ff7a6a', 28); G.combo = 0; sfx.wrong(); }
@@ -1893,6 +1903,10 @@ function update(dt) {
       G.dlvQ.shift(); const up = owned().filter(p => !PROD[p].sea && !PROD[p].rec), sl2 = pick(free); makeCust('dlv', [gpick(up), gpick(up)], sl2);
       const c = G.slots[sl2]; c.dlv = 1; c.max = c.pat = S.diff === 'easy' ? 70 : 40; sfx.phone(); toast('📞 طلب دليفري! جهّزه قبل ما الطيار يمشي 🛵', '#ffe38a');
     }
+  }
+  const U = G.upQ; if (!tut && U && !U.on && G.dayT >= U.at && G.time > 20 && !G.raid && !G.slots.some(c => c && c.ch === U.ch)) {
+    const free = roomFor(); if (free) { U.on = 1; S.upset = null; const up = owned().filter(p => !PROD[p].sea), own = OWN[U.ch], ord = [own && has(own) ? own : pick(up)]; if (Math.random() < 0.5 && up.length > 1) ord.push(pick(up.filter(p => p !== ord[0])));
+      const sl = pick(free); makeCust(U.ch, ord, sl); const c = G.slots[sl]; c.upset = 1; c.max *= 1.3; c.pat = c.max; c.say = 'لسه زعلان منك من امبارح 😤'; c.sayT = 3; toast('😤 ' + CH[U.ch].n + ' راجع زعلان من امبارح، صالحه بطلب سريع', '#ffd0c8', 3.5); }
   }
   const Q = G.qst; if (!tut && Q && !Q.on && G.dayT >= Q.at && G.time > 20 && !G.raid && !G.slots.some(c => c && c.ch === Q.ch)) {
     const free = roomFor(); if (free) { Q.on = 1; const sl = pick(free); makeCust(Q.ch, Q.ord, sl); const c = G.slots[sl]; c.quest = 1; c.max *= 1.6; c.pat = c.max; c.say = 'محتاجك في خدمة 📜'; c.sayT = 3; sfx.vip(); toast('📜 حكاية ' + CH[Q.ch].n + ': ' + QST[Q.ch][0], '#ffe9b8', 4.5); }
@@ -1929,6 +1943,7 @@ function endDay() {
   if (!G.moment && G.lastCh) G.moment = { pr: 0, ch: G.lastCh, big: G.stars ? 'تحفة!' : 'معلش!', cap: G.stars ? JOKE[G.lastCh] || 'تسلم إيدك يا معلم!' : 'بكره أحسن إن شاء الله، الرحمة واسعة 🤲' };
   if (G.moment) { S.snaps.unshift({ d: S.day, m: G.moment }); S.snaps.length = Math.min(S.snaps.length, 24); }
   S.st.days++; S.st.bestDay = Math.max(S.st.bestDay, net);
+  G.brI = S.br ? Math.round(BRI[S.br] * (0.85 + Math.random() * 0.3)) : 0; S.money += G.brI; S.life += G.brI;
   S.stars[S.day] = Math.max(S.stars[S.day] || 0, G.stars); S.best = Math.max(S.best, G.bestCombo); if (G.stars === 3) S.st.s3 = 1;
   if (G.stars) S.day++; save();
   G.revT = 0; G.revShake = 0; if (G.posts && G.posts.length) G.endPh = 'rev'; else startSummary();
@@ -2115,7 +2130,9 @@ function renderBG() {
     ctx.save(); ctx.shadowColor = '#ff3b8a'; ctx.shadowBlur = 16; T('شاورما', 66, 64 + ny, 30, '#ffd0ea', FD, 'center', 2, '#ff3b8a'); ctx.shadowColor = '#4ae0ff'; const nm = S.cos.neon && S.name ? S.name : 'الرحمة'; T(nm, 66, ta ? 84 : 96, fit(nm, 118, ta ? 18 : 20, FD), '#d8f8ff', FD, 'center', 2, '#2ab0e0');
     if (ta) { ctx.shadowColor = '#ffd23f'; ctx.shadowBlur = 8; T(ta.t, 66, 104, fit(ta.t, 116, 12), '#fff6c8', FB, 'center', 2, '#a86a00'); } ctx.restore();
     // shelf for the boombox
-    R(132, 116, 110, 10, 3, '#8a5228', { lw: 2.4 }); L([[150, 126], [140, 140]], 3, '#5a3418'); L([[224, 126], [234, 140]], 3, '#5a3418');
+    const gfs = S.gifts.slice(-4), shw = 110 + gfs.length * 26;   // the shelf grows to hold the last 4 gifts
+    R(132, 116, shw, 10, 3, '#8a5228', { lw: 2.4 }); L([[150, 126], [140, 140]], 3, '#5a3418'); L([[224, 126], [234, 140]], 3, '#5a3418'); if (gfs.length) L([[132 + shw - 14, 126], [132 + shw - 4, 140]], 3, '#5a3418');
+    gfs.forEach((k, i) => T(GIFT[k][0], 256 + i * 26, 103, 22, '#000'));
     // Abu Hasiba's kiosk
     ctx.fillStyle = '#2f4a3a'; ctx.fillRect(862, 34, W - 862, CT - 34); ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#000'; ctx.fillRect(858, 34, 6, CT - 34); ctx.restore();
     R(866, 50, 92, 32, 4, '#ffd23f', { lw: 2.6 }); T('كشك أبو حسيبة', 912, 67, fit('كشك أبو حسيبة', 84, 15, FD), '#c62828', FD);
@@ -2142,6 +2159,44 @@ function renderBG() {
 }
 
 // ---------- scene drawing ----------
+// seasonal clothes: where each regular's head starts (x, top y, width), and what doesn't suit him
+const HEAD = { hafo: [0, -206, 90], aao: [0, -210, 78], aaota: [-2, -219, 84], hank: [0, -203, 92], zarb: [0, -170, 92], jab: [6, -186, 46], sakr: [10, -160, 72], has: [-4, -177, 64],
+  zool: [0, -183, 84], floba: [0, -212, 84], abkh: [0, -197, 84], prince: [0, -201, 90], abbas: [0, -166, 62], shawqy: [0, -190, 86], shamq: [-8, -198, 74], dola: [12, -176, 62] };
+const ACCNO = { prince: 'cap cone', zool: 'cap cone straw', floba: 'cap cone straw flag' };
+function accPick(ch) {   // cosmetic only, so it uses Math.random and leaves the day's seed alone
+  if (!HEAD[ch]) return '';
+  const ai = areaI(), r = Math.random(), k = ai === 3 ? (r < 0.85 ? 'helmet' : '') : G.sea === 'ram' ? (r < 0.6 ? 'cap' : '') : G.sea === 'eid' ? (r < 0.7 ? 'cone' : '') : G.wx === 'hot' ? (r < 0.55 ? 'straw' : '') : ai === 2 ? (r < 0.6 ? 'flag' : '') : '';
+  return k && !(ACCNO[ch] || '').includes(k) ? k : '';
+}
+function wearAcc(ch, k) {
+  const [x, y, w] = HEAD[ch], h = w / 2, ln = (lw = 3) => { ctx.lineWidth = lw; ctx.strokeStyle = OLC; ctx.stroke(); };
+  ctx.save(); ctx.lineJoin = 'round';
+  const dome = (rx, ry, by) => { ctx.beginPath(); ctx.ellipse(x, by, rx, ry, 0, Math.PI, 0); ctx.closePath(); };
+  if (k === 'cap') {   // white Ramadan taqiya with a knit pattern
+    const by = y + h * 0.34; dome(h * 0.95, h * 0.62, by); ctx.fillStyle = '#ffffff'; ctx.fill(); ln();
+    L([[x - h * 0.9, by - h * 0.14], [x + h * 0.9, by - h * 0.14]], 2, '#c9bfa8'); for (let i = 0; i < 6; i++) { const a = Math.PI * (1.12 + i * 0.152); dot(x + Math.cos(a) * h * 0.6, by - h * 0.1 + Math.sin(a) * h * 0.36, 2.6, '#d8cdb4'); }
+  } else if (k === 'cone') {   // Eid party hat
+    const bx = h * 0.55, top = y - w * 0.7, base = y + h * 0.2, ax = x + w * 0.04;
+    ctx.beginPath(); ctx.moveTo(x - bx, base); ctx.lineTo(ax, top); ctx.lineTo(x + bx, base); ctx.quadraticCurveTo(x, base + h * 0.18, x - bx, base); ctx.closePath();
+    ctx.save(); ctx.clip(); ctx.fillStyle = '#ff5a8a'; ctx.fillRect(x - w, top - 5, w * 2, base - top + 20); ctx.fillStyle = '#ffd23f'; for (let i = 0; i < 4; i++) ctx.fillRect(x - w, top + (base - top) * (0.22 + i * 0.24), w * 2, (base - top) * 0.1); ctx.restore(); ln();
+    E(ax, top, 6, 6, '#7ad3ff', { lw: 2.4 });
+  } else if (k === 'straw') {   // summer straw hat
+    ctx.beginPath(); ctx.ellipse(x, y + h * 0.28, w * 0.66, h * 0.24, 0, 0, Math.PI * 2); ctx.fillStyle = '#e9c66a'; ctx.fill(); ln();
+    dome(h * 0.68, h * 0.62, y + h * 0.22); ctx.fillStyle = '#f2d27e'; ctx.fill(); ln();
+    ctx.beginPath(); ctx.rect(x - h * 0.66, y + h * 0.04, h * 1.32, h * 0.18); ctx.fillStyle = '#d7263d'; ctx.fill(); ln(2);
+  } else if (k === 'flag') {   // stadium fan: a hat in the flag's colours and a little flag
+    const fx = x + h * 0.9, fy = y - h * 1.1;
+    L([[x + h * 0.5, y + h * 0.1], [fx, fy]], 2.6, '#6a4a2a');
+    ['#d7263d', '#ffffff', '#1a1a1a'].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(fx, fy + i * 7, 30, 7); }); ctx.beginPath(); ctx.rect(fx, fy, 30, 21); ln(2); dot(fx + 15, fy + 10.5, 2.2, '#d4a017');
+    const by = y + h * 0.3, tp = by - h * 0.52; dome(h * 0.8, h * 0.52, by); ctx.save(); ctx.clip(); ['#d7263d', '#ffffff', '#1a1a1a'].forEach((c, i) => { ctx.fillStyle = c; ctx.fillRect(x - w, tp + (by - tp) * i / 3, w * 2, (by - tp) / 3 + 1); }); ctx.restore(); ln();
+  } else if (k === 'helmet') {   // space station: a glass bubble
+    const r = w * 0.78, cy = y + r * 0.82;
+    L([[x, cy - r], [x, cy - r - 16]], 2.4, '#9aa4ac'); E(x, cy - r - 18, 5, 5, '#ff4a4a', { lw: 2 });
+    ctx.beginPath(); ctx.arc(x, cy, r, 0, Math.PI * 2); ctx.fillStyle = 'rgba(190,235,255,.22)'; ctx.fill(); ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(40,60,80,.85)'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, cy, r - 7, Math.PI * 1.15, Math.PI * 1.45); ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.stroke();
+  }
+  ctx.restore();
+}
 function drawCustomers(t) {
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 0, CLIPX[1] - CLIPX[0], CT - 6); ctx.clip();
   for (const c of G.slots) {
@@ -2160,7 +2215,7 @@ function drawCustomers(t) {
     if (c.ghost) { glow(sx, CT - 110 + off, 160, '#b07aff', 0.5 + 0.2 * Math.sin(t * 3)); dy -= 10 + Math.sin(t * 2 + c.slot) * 6; }
     if (c.st === 'run') glow(sx + dx, CT - 110, 120, '#ff5a3a', 0.35 + 0.25 * Math.sin(t * 14));
     if (G.wx === 'rain' || G.sea === 'eid') { ctx.save(); ctx.translate(0, off + dy); if (G.wx === 'rain') umbrella(sx + dx, c.slot); else balloon(sx + dx - 62, c.slot, t); ctx.restore(); }
-    ctx.save(); if (c.ghost) ctx.globalAlpha = 0.68 + 0.12 * Math.sin(t * 2.5 + c.slot); ctx.translate(sx + dx, CT + 8 + off + dy); const s = 0.84; ctx.scale(s / sq, s * sq); sprite(sl('c' + c.slot), c.ch + mood + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => CH[c.ch].d(mood, t), SC * DPR * s);
+    ctx.save(); if (c.ghost) ctx.globalAlpha = 0.68 + 0.12 * Math.sin(t * 2.5 + c.slot); ctx.translate(sx + dx, CT + 8 + off + dy); const s = 0.84; ctx.scale(s / sq, s * sq); const acc = c.ghost || c.vip || c.dlv ? '' : c.acc || ''; sprite(sl('c' + c.slot), c.ch + mood + acc + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => { CH[c.ch].d(mood, t); if (acc) wearAcc(c.ch, acc); }, SC * DPR * s);
     if (mood === 2 && c.st !== 'out') { ctx.save(); ctx.globalAlpha = 0.25; ctx.globalCompositeOperation = 'source-atop'; ctx.restore(); }
     ctx.restore();
     if (mood === 2 && c.st !== 'out') for (let k = 0; k < 3; k++) { const p = (t * 1.5 + k / 3) % 1; ctx.save(); ctx.globalAlpha = (1 - p) * 0.85; E(sx + (c.rx || 0) - 34 + k * 34, CT - 200 - p * 40 + off, 7 + p * 9, 7 + p * 9, '#ffffff', { ol: false, shade: false }); ctx.restore(); }
@@ -2213,8 +2268,8 @@ function sayBubble(c) {   // a customer's line: up to two lines, dark text on wh
 function nameTags() {
   if (G.raid && G.raid.shut > 0.3) return;
   for (const c of G.slots) {
-    if (!c || c.st === 'out') continue; const sx = SLOTX[c.slot] + (c.rx || 0), nm = c.legend && c.st === 'wait' ? '🌟 موجة ' + ar(3 - c.waves) + ' من ٣' : (c.wed ? '💍 فرح ' : c.quest ? '📜 ' : c.ghost ? '👻 ' : '') + CH[c.ch].n;
-    const p = RRp(sx - 66, CT - 4, 132, 22, 11); ctx.fillStyle = CH[c.ch].rare ? '#b8860b' : c.vip ? '#5b3cc4' : c.dlv ? '#c62828' : c.wed ? '#c2185b' : c.quest ? '#8a5a1a' : c.ghost ? '#4a2a8a' : 'rgba(28,18,12,.85)'; ctx.fill(p);
+    if (!c || c.st === 'out') continue; const sx = SLOTX[c.slot] + (c.rx || 0), nm = c.legend && c.st === 'wait' ? '🌟 موجة ' + ar(3 - c.waves) + ' من ٣' : (c.wed ? '💍 فرح ' : c.quest ? '📜 ' : c.upset ? '😤 ' : c.ghost ? '👻 ' : '') + CH[c.ch].n;
+    const p = RRp(sx - 66, CT - 4, 132, 22, 11); ctx.fillStyle = CH[c.ch].rare ? '#b8860b' : c.vip ? '#5b3cc4' : c.dlv ? '#c62828' : c.wed ? '#c2185b' : c.quest ? '#8a5a1a' : c.upset ? '#a83a2a' : c.ghost ? '#4a2a8a' : 'rgba(28,18,12,.85)'; ctx.fill(p);
     T(nm, sx, CT + 7, fit(nm, 122, 13), '#ffe9b8');
     const fl = frLv(c.ch); if (fl) { const hp = heartP(sx + 74, CT + 8, 11); ctx.fillStyle = '#ff4f7a'; ctx.fill(hp); ctx.lineWidth = 2; ctx.strokeStyle = OLC; ctx.stroke(hp); T(ar(fl), sx + 74, CT + 6, 12, '#fff', FD); }
     if (c.tr) { E(sx - 70, CT + 7, 13, 13, c.tr === 'thief' ? '#ffd0c8' : '#fff3d6', { lw: 2, hl: 0, v: false }); T(TRAITS[c.tr].i, sx - 70, CT + 8, 15, '#000'); }
@@ -2931,6 +2986,13 @@ function mkIcon(g, x, y) {   // a wooden crate with what it holds on top
   prodIcon({ bread: 'wbr', spit: 'hafoWrap', gfal: 'hankSand', gtray: 'sakrFal', fryer: 'jabFries', kettle: 'zoolTea', tap: 'aaoJuice', freezer: 'shawqyIce' }[g], x, y + 8, 0.6);
   R(x - 34, y + 4, 68, 30, 4, '#c8945a', { lw: 2.6 }); L([[x - 34, y + 19], [x + 34, y + 19]], 2, '#8a5a2a'); for (const s of [-1, 1]) L([[x + s * 22, y + 4], [x + s * 22, y + 34]], 2, '#8a5a2a');
 }
+const BRC = [900, 700, 1000, 1400, 1900], BRI = [0, 80, 130, 190, 260, 350];   // branch level costs, and what it earns a day
+function branchIcon(x, y, t) {   // a second little cart with a "٢" sign
+  const [a1, a2] = awCols();
+  R(x - 34, y - 8, 68, 30, 6, '#e8dcc8', { lw: 2.6 }); for (let i = 0; i < 4; i++) { ctx.fillStyle = i % 2 ? a2 : a1; ctx.fillRect(x - 38 + i * 19, y - 24, 19, 14); } L([[x - 38, y - 24], [x + 38, y - 24]], 2.4); L([[x - 38, y - 10], [x + 38, y - 10]], 2.4);
+  R(x - 12, y - 5, 24, 20, 4, '#ffd36a', { lw: 2 }); T('٢', x, y + 6, 17, '#c62828', FD);
+  E(x - 21, y + 25, 7, 7, '#3a3a44', { lw: 2.2 }); E(x + 21, y + 25, 7, 7, '#3a3a44', { lw: 2.2 });
+}
 function growIcon(lv, x, y, t) {   // a little kiosk, or a shop front with a sign and bulbs
   const [a1, a2] = awCols();
   if (lv === 1) { R(x - 30, y - 18, 60, 48, 4, '#8a5228', { lw: 2.6 }); R(x - 22, y - 8, 44, 22, 3, '#ffd36a', { lw: 2 }); for (let i = 0; i < 4; i++) { ctx.fillStyle = i % 2 ? a2 : a1; ctx.fillRect(x - 36 + i * 18, y - 32, 18, 14); } L([[x - 36, y - 32], [x + 36, y - 32]], 2.4); L([[x - 36, y - 18], [x + 36, y - 18]], 2.4); R(x - 30, y + 16, 60, 8, 2, '#c9d1d6', { lw: 2 }); }
@@ -2960,6 +3022,8 @@ function drawShop(t) {
   if (tab === 'menu') EXTRA_SHOP.forEach(([x, c], j) => { const E = EXTRAS[x]; shopCard(MENU_SHOP.length + j, { art: (ax, ay) => { glow(ax, ay, 44, '#e0f4ff', 0.6); prodIcon(E.on[0] + '|' + x, ax, ay + 28, 0.95); }, n: 'إضافة ' + E.n, d: '+' + ar(E.price) + ' ج على ' + E.d, st: S.extras[x] ? 'own' : 'buy', cost: c, fn: () => { S.extras[x] = 1; } }, 5); });
   if (tab === 'menu') shopCard(MENU_SHOP.length + EXTRA_SHOP.length, { art: (x, y) => mealIcon(x, y, t), n: 'وجبات كومبو', d: 'ساندوتش وجنب ومشروب • +٢٥٪', st: S.meal ? 'own' : 'buy', cost: MEAL_COST, fn: () => { S.meal = 1; } }, 5);
   if (tab === 'up') UPS.forEach((u, i) => { const lv = S.up[u.k]; shopCard(i, { art: (x, y) => upIcon(u.k, x, y), n: u.n, d: u.d, lv, st: lv >= 5 ? 'max' : 'buy', cost: u.c[lv], fn: () => { S.up[u.k]++; } }); });
+  if (tab === 'up') shopCard(UPS.length + GROW.length, { art: (x, y) => branchIcon(x, y, t), n: 'الفرع التاني', d: S.br >= 5 ? 'بيكسب حوالي ' + ar(BRI[5]) + ' ج كل يوم' : S.br ? 'بيكسب ' + ar(BRI[S.br]) + ' ← ' + ar(BRI[S.br + 1]) + ' ج في اليوم' : 'بيكسبلك ' + ar(BRI[1]) + ' ج كل يوم لوحده', lv: S.fin ? S.br : null, st: !S.fin ? 'lock' : S.br >= 5 ? 'max' : 'buy', note: 'سدّد دين أبو حسيبة', cost: BRC[S.br],
+    fn: () => { S.br++; toast(S.br === 1 ? '🏪 الفرع التاني اتفتح! الجعبوق ماسكه' : '🏪 الفرع كبر! بقى بيكسب ' + ar(BRI[S.br]) + ' ج في اليوم', '#9be37a', 2.6); } });
   if (tab === 'up') GROW.forEach((g, i) => shopCard(UPS.length + i, { art: (x, y) => growIcon(i + 1, x, y, t), n: g.n, d: g.d, st: S.grow > i ? 'own' : S.grow < i ? 'lock' : 'buy', note: 'محتاج الكشك الأول', cost: g.c, fn: () => { S.grow = i + 1; setHolds(); toast(i ? '🏪 مبروك المحل الجديد!' : '🏠 العربية بقت كشك!', '#9be37a'); } }));
   if (tab === 'mk') { const mk = mkFor(S.day); MKG.filter(grpOn).forEach((g, i) => { const pr = mk[g] ?? RESTOCK, n = S.wh[g] || 0, q = Math.min(CRATE, WH_MAX - n);
     shopCard(i, { art: (x, y) => mkIcon(g, x, y), n: grpName(g) + (pr > RESTOCK ? ' 🔺 غالي' : pr < RESTOCK ? ' 🔻 رخيص' : ''), d: 'التعبئة ' + ar(pr) + ' ج • في المخزن ' + ar(n) + ' من ' + ar(WH_MAX), st: q <= 0 ? 'full' : 'buy', cost: pr * q, fn: () => { S.wh[g] = n + q; toast('📦 خزّنت ' + ar(q) + ' تعبئات ' + grpName(g) + '، أبو حسيبة هياخد منهم ببلاش', '#9be3ff'); } }); }); }
@@ -2994,7 +3058,7 @@ function drawEnd() {
   const lp = RRp(230, y + 240, 500, 40, 12); ctx.fillStyle = '#fff'; ctx.fill(lp);
   T('المبيعات ' + (G.earned < 0 ? '' : '+') + ar(G.earned) + ' ج', 630, y + 261, 15, '#2e7d32'); T('أبو حسيبة -' + ar(G.spent) + ' ج', 330, y + 261, 15, '#c62828');
   if (G.bonus) T('🎯 مهمات +' + ar(G.bonus) + ' ج', 480, y + 261, 15, '#8a4ad8');
-  coinIcon(560, y + 312, 14); T('معاك ' + ar(S.money) + ' ج', 470, y + 313, 22, '#3a1d0e', FD);
+  if (G.brI) T('🏪 الفرع +' + ar(G.brI) + ' ج', 705, y + 313, 17, '#2e7d32', FD); coinIcon(560, y + 312, 14); T('معاك ' + ar(S.money) + ' ج', 470, y + 313, 22, '#3a1d0e', FD);
   const deals = shopDeals(), ms = Object.keys(G.missed || {}).sort((a, b) => G.missed[b] - G.missed[a]);
   let ly = y + 346;
   if (G.rival) { T(G.rivalWin ? '🛒 غلبت سكرتاعوط! +' + ar(G.rivalB) + ' ج' : '🛒 سكرتاعوط باع ' + ar(Math.round(G.rival.e)) + ' ج وغلبك المرة دي', 480, ly, 17, G.rivalWin ? '#2e7d32' : '#c62828', FD); ly += 26; }
