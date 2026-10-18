@@ -49,15 +49,19 @@ function drawCustomers(t) {
     const f = isFinite(c.max) ? c.pat / c.max : 1;
     const mood = c.st === 'happy' || c.st === 'run' ? 1 : (c.st === 'angry' || c.shake > 0 || (c.st === 'wait' && f < 0.3)) ? 2 : 0;
     if (mood === 2) dx += Math.sin(t * 50) * 2.5;
+    const imp = c.st === 'wait' && isFinite(c.max) && f < 0.6 && f >= 0.3 && !c.hag;   // getting impatient: tapping a foot and checking the clock
+    if (imp) dy -= Math.max(0, Math.sin(t * 11 + c.slot)) * 3;
     const want = (G.drag || G.sel) && wants(c, prodOf((G.drag && G.drag.key) || G.sel));
     if (want) glow(sx, CT - 110, 130, '#9bff7a', 0.45 + 0.2 * Math.sin(t * 8));
     if (c.vip) glow(sx, CT - 100, 150, '#ffd86b', 0.5);
     if (c.ghost) { glow(sx, CT - 110 + off, 160, '#b07aff', 0.5 + 0.2 * Math.sin(t * 3)); dy -= 10 + Math.sin(t * 2 + c.slot) * 6; }
     if (c.st === 'run') glow(sx + dx, CT - 110, 120, '#ff5a3a', 0.35 + 0.25 * Math.sin(t * 14));
     if (G.wx === 'rain' || G.sea === 'eid') { ctx.save(); ctx.translate(0, off + dy); if (G.wx === 'rain') umbrella(sx + dx, c.slot); else balloon(sx + dx - 62, c.slot, t); ctx.restore(); }
-    ctx.save(); if (c.ghost) ctx.globalAlpha = 0.68 + 0.12 * Math.sin(t * 2.5 + c.slot); ctx.translate(sx + dx, CT + 8 + off + dy); const s = 0.84; ctx.scale(s / sq, s * sq); const acc = c.ghost || c.vip || c.dlv ? '' : c.acc || ''; sprite(sl('c' + c.slot), c.ch + mood + acc + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => { CH[c.ch].d(mood, t); if (acc) wearAcc(c.ch, acc); }, SC * DPR * s);
+    ctx.save(); if (c.ghost) ctx.globalAlpha = 0.68 + 0.12 * Math.sin(t * 2.5 + c.slot); ctx.translate(sx + dx, CT + 8 + off + dy); if (imp) ctx.rotate(Math.sin(t * 1.3 + c.slot) * 0.025); const s = 0.84; ctx.scale(s / sq, s * sq); const acc = c.ghost || c.vip || c.dlv ? '' : c.acc || ''; sprite(sl('c' + c.slot), c.ch + mood + acc + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => { CH[c.ch].d(mood, t); if (acc) wearAcc(c.ch, acc); }, SC * DPR * s);
     if (mood === 2 && c.st !== 'out') { ctx.save(); ctx.globalAlpha = 0.25; ctx.globalCompositeOperation = 'source-atop'; ctx.restore(); }
     ctx.restore();
+    if (imp) { const g = (t * 0.3 + c.slot * 0.37) % 1, [hx, hy, hw] = HEAD[c.ch] || [0, -200, 80]; if (g < 0.32) { const x = sx + dx + (hx - hw * 0.6) * 0.84 - 8, y = CT + 18 + off + dy + hy * 0.84, k = Math.min(1, g * 12) * (1 + Math.sin(t * 16) * 0.06);
+      ctx.save(); ctx.translate(x, y); ctx.scale(k, k); E(0, 0, 15, 15, '#ffffff', { lw: 2.2, hl: 0, v: false }); T('⏰', 0, 1, 17, '#000'); ctx.restore(); } }
     if (mood === 2 && c.st !== 'out') for (let k = 0; k < 3; k++) { const p = (t * 1.5 + k / 3) % 1; ctx.save(); ctx.globalAlpha = (1 - p) * 0.85; E(sx + (c.rx || 0) - 34 + k * 34, CT - 200 - p * 40 + off, 7 + p * 9, 7 + p * 9, '#ffffff', { ol: false, shade: false }); ctx.restore(); }
   }
   ctx.restore();
@@ -270,10 +274,10 @@ function drawWalkers(t) {
   const ws = G.walkers; if (!ws || !ws.length) return;
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 26, CLIPX[1] - CLIPX[0], CT - 32); ctx.clip();
   for (const w of ws) {
-    if (w.kind !== 'fly' && w.kind !== 'ufo' && w.act !== 'astro' && w.ch !== 'rasoda') { ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 70 * w.s * (w.kind === 'tuk' ? 1.8 : 1), 12 * w.s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
+    if (w.kind !== 'fly' && w.kind !== 'ufo' && w.kind !== 'cats' && w.act !== 'astro' && w.ch !== 'rasoda') { ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(w.x, w.y, 70 * w.s * (w.kind === 'tuk' ? 1.8 : 1), 12 * w.s, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); }
     ctx.save(); ctx.translate(w.x, w.y + (w.kind === 'fly' || w.kind === 'ufo' ? Math.sin(t * 3 + w.seed) * 10 : 0)); ctx.scale(w.dir * w.s, w.s);
     if (!w.L) w.L = makeLayer();
-    sprite(w.L, tb(10, w.seed), -170, -390, 340, 430, () => { if (w.kind === 'walk') walkerBody(w, t); else if (w.kind === 'tuk') drawTuk(t); else if (w.kind === 'bike') drawBike(t); else if (w.kind === 'gas') drawGas(t, w); else if (w.kind === 'ufo') drawUfo(t); else CH[w.ch].d(1, t); }, SC * DPR * w.s);
+    sprite(w.L, tb(10, w.seed), -170, -390, 340, 430, () => { if (w.kind === 'walk') walkerBody(w, t); else if (w.kind === 'tuk') drawTuk(t); else if (w.kind === 'bike') drawBike(t); else if (w.kind === 'gas') drawGas(t, w); else if (w.kind === 'ufo') drawUfo(t); else if (w.kind === 'cats') drawCats(w); else CH[w.ch].d(1, t); }, SC * DPR * w.s);
     ctx.restore();
     if (w.kind === 'tuk') for (let i = 0; i < 2; i++) { const p = (t * 0.9 + i * 0.5) % 1; ctx.save(); ctx.globalAlpha = 1 - p; T('♫', w.x - w.dir * 30 + p * 10, w.y - 100 - p * 26, 18, '#ffd23f', FB, 'center', 3); ctx.restore(); }
     if (w.kind === 'gas' && Math.sin(t * 2 + w.seed) > 0.4) T('أنابيب!', w.x, w.y - 162, 14, '#fff', FD, 'center', 3);
@@ -282,6 +286,36 @@ function drawWalkers(t) {
       else if (w.act === 'phone' && Math.sin(t * 1.5 + w.seed) > 0.5) T('ألو؟', w.x + w.dir * 34, hy - 4, 14, '#fff', FD, 'center', 3); }
   }
   ctx.restore();
+}
+function drawPigeons(t) {
+  const P = G.pig; if (!P || !P.b.length) return;
+  ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 26, CLIPX[1] - CLIPX[0], CT - 32); ctx.clip();
+  for (const b of P.b) {
+    const d = b.dir, x = b.x, y = b.y, air = b.st !== 'peck', down = !air && (t * 1.3 + b.k) % 2 < 0.35;
+    if (!air) { ctx.save(); ctx.globalAlpha = 0.22; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(x, y, 9, 2.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore(); L([[x - 2, y - 4], [x - 2, y]], 1.6, '#e07a7a'); L([[x + 2, y - 4], [x + 2, y]], 1.6, '#e07a7a'); }
+    PL([[x - d * 8, y - 9], [x - d * 17, y - 11], [x - d * 15, y - 5]], '#5f646e', { lw: 1.4, hl: 0, v: false });
+    E(x, y - 8, 9, 6, '#8a8f9a', { lw: 1.6, hl: 0.3, v: false });
+    if (air) { const f = Math.sin(t * 26 + b.k) * 9; PL([[x - 4, y - 10], [x + 4, y - 10], [x - d * 6, y - 18 - f]], '#9aa0aa', { lw: 1.4, hl: 0, v: false }); }
+    else E(x - d * 2, y - 9, 6, 3.5, '#6f747e', { lw: 1.2, hl: 0, v: false });
+    const hx = x + d * 8, hy = down ? y - 3 : y - 13;
+    E(hx, hy, 4.5, 4.5, '#7a7f8a', { lw: 1.4, hl: 0.2, v: false }); dot(hx - d * 1.5, hy + 3, 2, '#5fae8a'); dot(hx + d * 1.5, hy - 1, 1.1, '#111');
+    PL([[hx + d * 4, hy - 1], [hx + d * 8, hy + 1], [hx + d * 4, hy + 2]], '#e8a040', { lw: 0.8, hl: 0, v: false });
+  }
+  ctx.restore();
+}
+function drawDog(t) {   // a baladi dog asleep by the cart, breathing slowly, with Zzz floating up
+  if (areaI() === 3) return;
+  sprite(sl('dog'), tb(6), 780, 236, 86, 52, () => {
+    const br = 1 + Math.sin(G.t * 1.8) * 0.07, c = '#c8955a';
+    Q(852, 280, 866, 272, 858, 262, 7, OLC); Q(852, 280, 866, 272, 858, 262, 3.5, c);
+    E(834, 276, 24, 10 * br, c, { lw: 2.4, hl: 0.3 });
+    E(842, 270, 9, 5, shade(c, -0.2), { lw: 0, hl: 0, v: false, ol: false });
+    E(803, 284, 8, 3.2, c, { lw: 1.8, hl: 0 }); E(815, 285, 7, 3, c, { lw: 1.8, hl: 0 });
+    E(810, 277, 11, 9, c, { lw: 2.2, hl: 0.3 }); E(800, 280, 7, 5, '#e8c08a', { lw: 1.8, hl: 0.2 }); dot(794, 279, 2.2, '#222');
+    Q(803, 274, 807, 277, 811, 274, 1.6, OLC);
+    E(817, 275, 5, 8.5, '#8a5a2a', { lw: 1.8, hl: 0, rot: 0.6 });
+  });
+  for (let i = 0; i < 3; i++) { const p = (t * 0.35 + i / 3) % 1; ctx.save(); ctx.globalAlpha = Math.min(1, p * 4) * (1 - p); T('z', 800 - p * 14 + Math.sin(p * 6) * 3, 266 - p * 38, 9 + p * 8, '#ffffff', FD, 'center', 2.5); ctx.restore(); }
 }
 function drawRadio(t) {   // boombox: tap to switch tape
   const r = ST.radio, x = r.x + 4, y = r.y, tp = TAPES[S.tape] || TAPES.rahma, on = musicLive && musV > 0, bt = on ? Math.abs(Math.sin(t * 7)) * 2 : 0;
@@ -333,6 +367,28 @@ function drawItems(t) {
   if (xs) for (const k in SLOT) { const p = G.items[k]; if (p && EXTRAS[xs].on.includes(pid(p)) && !pex(p)) { const [x, y] = SLOT[k]; ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 8); ctx.beginPath(); ctx.arc(x, y - 30, 34, 0, Math.PI * 2); ctx.lineWidth = 3; ctx.strokeStyle = xs === 's' ? '#fff3d6' : '#bfe6ff'; ctx.setLineDash([6, 5]); ctx.stroke(); ctx.restore(); } }
   if (G.drag && G.drag.key.startsWith('x:')) { if (G.drag.moved) { ctx.save(); ctx.translate(G.drag.x - 23 * 1.8, G.drag.y + 22 * 1.8 - 26); ctx.scale(1.8, 1.8); xBadge(G.drag.key[2]); ctx.restore(); } }
   else if (G.drag) { const p = prodOf(G.drag.key); if (p) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(G.drag.x + 6, G.drag.y + 42, 30, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; prod(p, G.drag.x, G.drag.y + 30, 1.15, t); ctx.restore(); } }
+}
+// steam and smoke: the spit smokes, the fryer and the kettle steam, and fresh hot food steams for a few seconds
+const HOTP = { hafoWrap: 1, jabFries: 1, zoolTea: 1, sakrFal: 1, hankSand: 1, mixWrap: 1, friesWrap: 1, falSand: 1 };
+function puffs(x, y, n, h, a, t, sp = 0.55, w = 9) {   // curly wisps, white with a soft grey edge so they show on the light counter and the dark street
+  ctx.save(); ctx.lineCap = 'round'; const o = ctx.globalAlpha;
+  for (let i = 0; i < n; i++) {
+    const p = (t * sp + i / n) % 1, yy = y - p * h, xx = x + Math.sin(p * 5 + i * 2.1 + t * 0.8) * w * (0.4 + p), ww = 2.5 + 3.5 * (1 - p), c = Math.sin(t * 2 + i) * 6;
+    ctx.globalAlpha = o * a * Math.sin(p * Math.PI); ctx.beginPath(); ctx.moveTo(xx, yy); ctx.bezierCurveTo(xx + 7 + c, yy - 6, xx - 7 - c, yy - 12, xx, yy - 19);
+    ctx.lineWidth = ww + 3; ctx.strokeStyle = 'rgba(100,110,120,.5)'; ctx.stroke(); ctx.lineWidth = ww; ctx.strokeStyle = '#ffffff'; ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawSteam(t) {
+  const lo = QL >= 2 ? 0.5 : 1;
+  if (stockN('spit') > 0) puffs(70, 112, Math.ceil(3 * lo), 40, 0.5, t, 0.4, 12);
+  if (stationVisible('fryer') && G.fry >= 0) puffs(ST.fryer.x + 70, ST.fryer.y + 4, Math.ceil(5 * lo), 60, 0.85, t, 0.8, 24);
+  if (stationVisible('kettle')) { const k = G.kettle >= 0; puffs(ST.kettle.x + 104, ST.kettle.y + 30, Math.ceil((k ? 4 : 2) * lo), k ? 50 : 34, k ? 0.8 : 0.5, t, 0.6, 8); }
+  for (const k in SLOT) {
+    const p = G.items[k]; if (!p || !HOTP[pid(p)] || pex(p) === 'i' || (G.drag && G.drag.key === k)) continue;
+    const age = G.t - (G.born[k] ?? -99); if (age > 14) continue;
+    const [x, y] = SLOT[k], s0 = SLOTS_S[k] || 0.95; puffs(x, y - 62 * s0, Math.ceil(3 * lo), 40 * s0, 0.8 * (1 - age / 14), t + x * 0.01, 0.5, 6);
+  }
 }
 function drawDirt(t) {
   const n = dirtN();
@@ -535,6 +591,41 @@ function drawNight(t) {   // midnight: a dark street with a moon and stars; the 
   ctx.save(); ctx.beginPath(); ctx.arc(372, 92, 19, 0, Math.PI * 2); ctx.clip(); ctx.beginPath(); ctx.rect(350, 70, 44, 44); ctx.arc(381, 86, 16, 0, Math.PI * 2); ctx.fillStyle = '#fff3c4'; ctx.fill('evenodd'); ctx.restore();
   ctx.restore();
 }
+// the sky through the day: a bright morning, a golden afternoon, the usual sunset, then night with the windows and shops lit
+function dayPh() {   // 0 morning .. 0.55 sunset .. 1 night (in Ramadan the sun sets at the iftar cannon)
+  if (!isFinite(G.time)) return G.tut ? 0.1 : (G.dayT % 150) / 150;
+  if (G.iftar) return G.dayT < G.iftar.at ? 0.55 * G.dayT / G.iftar.at : Math.min(1, 0.55 + 0.45 * (G.dayT - G.iftar.at) / (DAYLEN - G.iftar.at));
+  return clamp(G.dayT / DAYLEN, 0, 1);
+}
+const HWIN = [];   // the hara's windows (same layout as renderBG); fill = safe to paint lit without covering laundry, signs or graffiti
+for (const [x, w, top] of [[140, 160, 66], [300, 176, 46], [520, 170, 84], [700, 166, 56]]) for (let ry = top + 16; ry < 176; ry += 50) for (let cx = x + 18; cx < x + w - 30; cx += 46)
+  HWIN.push([cx, ry, hash(cx * 0.3 + ry), !(ry + 34 > 194 || (cx + 30 > 320 && cx < 460 && ry < 140 && ry + 34 > 100) || (cx + 30 > 280 && cx < 380 && ry + 34 > 165) || (cx + 30 > 520 && cx < 600 && ry + 34 > 172))]);
+function drawDayLight(t) {
+  const AK = area().k; if (AK === 'space') return;
+  const ph = dayPh(), sm = (a, b, x) => { const k = clamp((x - a) / (b - a), 0, 1); return k * k * (3 - 2 * k); };
+  const day = 1 - sm(0.28, 0.5, ph), gold = clamp(1 - Math.abs(ph - 0.42) / 0.13, 0, 1), nt = sm(0.64, 0.84, ph), wet = G.wx === 'rain' ? 0.5 : 1, X0 = CLIPX[0], XW = CLIPX[1] - CLIPX[0];
+  ctx.save(); ctx.beginPath(); ctx.rect(X0, 0, XW, CT - 6); ctx.clip();
+  if (day > 0.01 || gold > 0.01) {
+    ctx.globalCompositeOperation = 'screen';
+    if (day > 0.01) { const g = ctx.createLinearGradient(0, 0, 0, CT); g.addColorStop(0, `rgba(150,215,255,${0.7 * day * wet})`); g.addColorStop(0.7, `rgba(255,240,200,${0.36 * day * wet})`); g.addColorStop(1, `rgba(255,240,200,${0.12 * day * wet})`); ctx.fillStyle = g; ctx.fillRect(X0, 0, XW, CT); }
+    if (gold > 0.01) { ctx.fillStyle = `rgba(255,200,110,${0.28 * gold * wet})`; ctx.fillRect(X0, 0, XW, CT); }
+    ctx.globalCompositeOperation = 'source-over';
+    const q = ph / 0.55;   // sunlight moving across the sky (hot days draw their own sun; none in the rain)
+    if (q < 1 && G.wx !== 'hot' && G.wx !== 'rain') { ctx.globalAlpha = 1 - sm(0.8, 1, q); glow(190 + 600 * q, 70 - 30 * Math.sin(Math.PI * q), 150, q > 0.7 ? '#ffb850' : '#fff6d0', 0.4); ctx.globalAlpha = 1; }
+  }
+  if (nt > 0.01) {
+    ctx.globalAlpha = nt;
+    const g = ctx.createLinearGradient(0, 0, 0, CT); g.addColorStop(0, 'rgba(6,8,36,.7)'); g.addColorStop(1, 'rgba(20,12,44,.5)'); ctx.fillStyle = g; ctx.fillRect(X0, 0, XW, CT);
+    if (AK === 'hara') {   // the windows and the shops light up
+      ctx.fillStyle = '#ffd36a'; for (const [x, y, h, ok] of HWIN) if (h > 0.25) { if (h <= 0.45 && ok) ctx.fillRect(x + 2, y + 2, 26, 30); glow(x + 15, y + 17, 30, '#ffd36a', 0.4); }
+      for (const [x, c] of [[220, '#ff6a5a'], [388, '#ffd23f'], [605, '#6bff9a'], [783, '#6bb8ff']]) { glow(x, 208, 74, c, 0.4); glow(x, 246, 70, '#ffb347', 0.6); }
+      glow(660, 70, 60, '#fff6c8', 0.45);
+    } else if (AK === 'corn') { for (const x of [230, 480, 730]) glow(x + 20, 146, 64, '#ffd36a', 0.7); glow(626, 64, 40, '#ff8ae8', 0.6); glow(250, 70, 56, '#fff6c8', 0.45); }
+    else if (AK === 'stad') { for (const x of [180, 816]) glow(x, 50, 90, '#fffbe0', 0.7); glow(480, 80, 90, '#ffd23f', 0.3); }
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+}
 function drawHeat(t) {
   if (G.wx !== 'hot') return;
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 26, CLIPX[1] - CLIPX[0], CT - 32); ctx.clip();
@@ -722,21 +813,21 @@ function drawTitle(t) {
 // two glass cases on the home screen, one each side of the title card, for the figures you own; tap a figure and it hops
 function openShop(tab) { sfx.tap(); G.state = 'shop'; G.shopFrom = 'title'; G.shopTab = tab || G.shopTab || 'menu'; }
 function drawVitrine(t) {
-  const own = FIG.filter(k => S.fig[k]), n = own.length, hp = G.figHop, hs = hp && G.t - hp.t < 1.6 ? (own.indexOf(hp.ch) >= 8 ? 1 : 0) : -1;   // the tapped figure's case shows its name for a moment
+  const own = FIG.filter(k => S.fig[k]), n = own.length, hp = G.figHop, hs = hp && G.t - hp.t < 1.6 ? (own.indexOf(hp.ch) >= 10 ? 1 : 0) : -1;   // the tapped figure's case shows its name for a moment
   [0, 1].forEach(side => {
     const x0 = side ? 12 : 800, y0 = 316, w = 148, h = 212, gx = x0 + 9, gy = y0 + 30, gw = w - 18, gh = h - 39;
     R(x0, y0, w, h, 12, '#8a5228', { lw: 3 });
     const hd = hs === side ? CH[hp.ch].n : side ? ar(n) + ' / ' + ar(FIG.length) : '🧸 الفاترينة'; T(hd, x0 + w / 2, y0 + 16, fit(hd, w - 16, 15, FD), '#ffe38a', FD, 'center', 3, '#3a1a08');
     const gp = RRp(gx, gy, gw, gh, 6); ctx.fillStyle = 'rgba(214,238,246,.9)'; ctx.fill(gp); ctx.lineWidth = 2; ctx.strokeStyle = '#5a3418'; ctx.stroke(gp);
     for (let r = 0; r < 3; r++) {
-      const sy = gy + 55 + r * 57, cols = r < 2 ? 3 : 2; R(gx, sy, gw, 6, 2, '#c8945a', { lw: 1.6, hl: 0 });
+      const sy = gy + 55 + r * 57, cols = r ? 3 : 4, sp = cols === 4 ? 31 : 40; R(gx, sy, gw, 6, 2, '#c8945a', { lw: 1.6, hl: 0 });
       for (let c = 0; c < cols; c++) {
-        const ch = own[side * 8 + r * 3 + c], cx = gx + gw / 2 + (cols === 3 ? (1 - c) * 43 : (0.5 - c) * 43);
-        E(cx, sy, 16, 4, ch ? '#e8c46a' : 'rgba(90,52,24,.15)', { lw: ch ? 1.6 : 0, ol: !!ch, hl: 0 });
-        if (!ch) { T('؟', cx, sy - 18, 18, 'rgba(90,52,24,.3)', FD); if (G.state === 'title') btn(cx - 21, sy - 50, 42, 54, () => openShop('fig')); continue; }
+        const ch = own[side * 10 + (r ? 1 + r * 3 : 0) + c], cx = gx + gw / 2 + ((cols - 1) / 2 - c) * sp;
+        E(cx, sy, 13, 4, ch ? '#e8c46a' : 'rgba(90,52,24,.15)', { lw: ch ? 1.6 : 0, ol: !!ch, hl: 0 });
+        if (!ch) { T('؟', cx, sy - 18, 18, 'rgba(90,52,24,.3)', FD); if (G.state === 'title') btn(cx - sp / 2, sy - 50, sp, 54, () => openShop('fig')); continue; }
         const k = hp && hp.ch === ch ? (G.t - hp.t) / 0.45 : 1, up = k < 1 ? Math.sin(k * Math.PI) * 14 : 0;
         albPortrait(ch, cx, sy - 5 - up, 0.125, true);
-        if (G.state === 'title') btn(cx - 21, sy - 50, 42, 54, () => { G.figHop = { ch, t: G.t }; voice(ch, 1); burst(cx, sy - 30, 6, ['#ffd23f', '#ffffff'], 'star', 0.4); });
+        if (G.state === 'title') btn(cx - sp / 2, sy - 50, sp, 54, () => { G.figHop = { ch, t: G.t }; voice(ch, 1); burst(cx, sy - 30, 6, ['#ffd23f', '#ffffff'], 'star', 0.4); });
       }
     }
     ctx.save(); ctx.globalAlpha = 0.45; L([[gx + 30, gy + 4], [gx + 6, gy + 44]], 4, '#fff'); L([[gx + 44, gy + 4], [gx + 10, gy + 62]], 2, '#fff'); ctx.restore();
@@ -857,21 +948,21 @@ function shopDeals() {
 const figCost = ch => 120 + 15 * FIG.indexOf(ch), keyPrice = () => 10 + Math.floor(S.day / 3);
 function drawFigs(t) {
   FIG.forEach((ch, i) => {
-    const col = i % 8, row = Math.floor(i / 8), x = 806 - col * 106, y = 128 + row * 152, w = 100, h = 144, cx = x + w / 2, met = !!S.album[ch], m = S.fig[ch];
+    const col = i % 8, row = Math.floor(i / 8), x = 806 - col * 106, y = 122 + row * 104, w = 100, h = 100, cx = x + w / 2, met = !!S.album[ch], m = S.fig[ch];
     const p = RRp(x, y, w, h, 12); ctx.fillStyle = m ? '#fffbe8' : met ? '#ffffff' : '#ece0c8'; ctx.fill(p); ctx.lineWidth = m ? 3.5 : 2.5; ctx.strokeStyle = m ? '#d4a017' : '#e0cfae'; ctx.stroke(p);
-    if (m) glow(cx, y + 56, 44, '#fff1a0', 0.7);
-    E(cx, y + 92, 34, 8, m ? '#e8c46a' : '#d8ccb4', { lw: 2.2 }); L([[cx, y + 10], [cx, y + 18]], 2, '#9aa4ac'); E(cx, y + 9, 5, 5, 'rgba(0,0,0,0)', { lw: 2 });
-    ctx.save(); if (met && !m) ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.rect(x + 3, y + 3, w - 6, 92); ctx.clip(); albPortrait(ch, cx, y + 90, 0.24, met); ctx.restore();
-    T(met ? CH[ch].n : '؟؟؟', cx, y + 108, fit(met ? CH[ch].n : '؟؟؟', w - 10, 13, FD), '#3a1d0e', FD);
-    const by = y + 118;
-    if (!met) T('🔒 قابله الأول', cx, by + 12, 11, '#9a6a4a');
-    else if (!m) { const c = figCost(ch), can = S.money >= c; ctx.save(); ctx.globalAlpha = can ? 1 : 0.45; const bp = RRp(cx - 42, by, 84, 22, 11); ctx.fillStyle = can ? '#2e9d4a' : '#888'; ctx.fill(bp); ctx.lineWidth = 2.2; ctx.strokeStyle = OLC; ctx.stroke(bp); coinIcon(cx + 26, by + 11, 7); T(ar(c), cx - 6, by + 12, 14, '#fff', FD); ctx.restore();
+    if (m) glow(cx, y + 38, 40, '#fff1a0', 0.7);
+    E(cx, y + 61, 32, 6, m ? '#e8c46a' : '#d8ccb4', { lw: 2.2 }); L([[cx, y + 6], [cx, y + 11]], 2, '#9aa4ac'); E(cx, y + 6, 4, 4, 'rgba(0,0,0,0)', { lw: 1.8 });
+    ctx.save(); if (met && !m) ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.rect(x + 3, y + 3, w - 6, 61); ctx.clip(); albPortrait(ch, cx, y + 59, 0.21, met); ctx.restore();
+    T(met ? CH[ch].n : '؟؟؟', cx, y + 75, fit(met ? CH[ch].n : '؟؟؟', w - 10, 12, FD), '#3a1d0e', FD);
+    const by = y + 81;
+    if (!met) T('🔒 قابله الأول', cx, by + 9, 11, '#9a6a4a');
+    else if (!m) { const c = figCost(ch), can = S.money >= c; ctx.save(); ctx.globalAlpha = can ? 1 : 0.45; const bp = RRp(cx - 42, by, 84, 18, 9); ctx.fillStyle = can ? '#2e9d4a' : '#888'; ctx.fill(bp); ctx.lineWidth = 2.2; ctx.strokeStyle = OLC; ctx.stroke(bp); coinIcon(cx + 26, by + 9, 6); T(ar(c), cx - 6, by + 10, 13, '#fff', FD); ctx.restore();
       if (can) btn(x, y, w, h, () => buy(c, () => { S.fig[ch] = 1; bgDirty = true; toast('🧸 فيجر ' + CH[ch].n + ' اتحط على رف العربية!', '#ffe38a', 2.6); }, cx, by)); }
-    else { const bp = RRp(x + 6, by, w - 12, 22, 11); ctx.fillStyle = m === 1 ? '#ffe9b8' : '#ffd0ea'; ctx.fill(bp); ctx.lineWidth = 2.2; ctx.strokeStyle = OLC; ctx.stroke(bp); const lb = m === 1 ? '💰 بيبيع ميداليات' : '🎁 بيوزّع ببلاش'; T(lb, cx, by + 12, fit(lb, w - 20, 12), '#5a3a20');
+    else { const bp = RRp(x + 6, by, w - 12, 18, 9); ctx.fillStyle = m === 1 ? '#ffe9b8' : '#ffd0ea'; ctx.fill(bp); ctx.lineWidth = 2.2; ctx.strokeStyle = OLC; ctx.stroke(bp); const lb = m === 1 ? '💰 بيبيع ميداليات' : '🎁 بيوزّع ببلاش'; T(lb, cx, by + 10, fit(lb, w - 20, 11), '#5a3a20');
       btn(x, y, w, h, () => { S.fig[ch] = m === 1 ? 2 : 1; save(); sfx.tap(); toast(m === 1 ? '🎁 هتوزّع ميداليات ' + CH[ch].n + ' ببلاش، فهيجي أكتر ويحبك أسرع' : '💰 هتبيع ميداليات ' + CH[ch].n + ' بـ' + ar(keyPrice()) + ' ج للزباين', m === 1 ? '#ffd0ea' : '#ffe9b8', 2.8); }); }
   });
   const n = FIG.filter(k => S.fig[k]).length, hs = 'عندك ' + ar(n) + ' من ' + ar(FIG.length) + ' فيجر • بيتحطوا على رف العربية، ودوس على الفيجر تختار تبيع ميدالياته أو توزعها ببلاش';
-  T(hs, 480, 437, fit(hs, 840, 13), '#7a4a2a');
+  T(hs, 480, 440, fit(hs, 840, 13), '#7a4a2a');
 }
 function buy(cost, fn, x, y) { S.money -= cost; fn(); save(); sfx.cash(); sfx.combo(4); burst(x, y, 22, ['#ffd23f', '#9be37a', '#fff'], 'star', 0.7); }
 // one shop card; o = { art(x,y), n, d, st: buy|own|max|lock|sel|use, cost, lv, fn, note }

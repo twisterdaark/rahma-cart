@@ -24,6 +24,31 @@ function noise(d, v, when = 0, hp = 2500, music = false, lpf = 0) {
   g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
   s.connect(f); f.connect(g); g.connect(music ? musG : sfxG); s.start(t); s.stop(t + d + 0.02);
 }
+function ambN(d, v, type, f, q = 0.7, when = 0) {   // a soft swell of filtered noise
+  if (!AC || sfxV <= 0) return;
+  if (!nbuf) { nbuf = AC.createBuffer(1, AC.sampleRate * 0.5, AC.sampleRate); const a = nbuf.getChannelData(0); for (let i = 0; i < a.length; i++) a[i] = Math.random() * 2 - 1; }
+  const t = AC.currentTime + when, s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = nbuf; s.loop = true; fl.type = type; fl.frequency.value = f; fl.Q.value = q;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + d * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + d);
+  s.connect(fl); fl.connect(g); g.connect(sfxG); s.start(t, Math.random() * 0.4); s.stop(t + d + 0.05);
+}
+function ambO(f, d, v) {   // a slow hum that fades in and out
+  if (!AC || sfxV <= 0) return;
+  const t = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(); o.frequency.value = f;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + d * 0.4); g.gain.linearRampToValueAtTime(0.0001, t + d);
+  o.connect(g); g.connect(sfxG); o.start(t); o.stop(t + d + 0.05);
+}
+function ambTick(dt) {   // hara chatter and horns, waves on the corniche, the crowd at the stadium, a hum in space; rain and crickets on top
+  if (G.state !== 'play' || G.paused || !AC || AC.state !== 'running' || sfxV <= 0 || document.hidden) return;
+  if ((G.ambT = (G.ambT ?? 0) - dt) > 0) return;
+  const ai = areaI(), r = Math.random();
+  if (ai === 0) { G.ambT = 2.6; ambN(3.4, 0.02, 'bandpass', 520, 0.6); if (r < 0.12) { const w = rnd(0, 1.5); tone(392, 0.22, 'square', 0.012, w, 0, 1400); tone(370, 0.3, 'square', 0.012, w + 0.28, 0, 1400); } else if (r < 0.2) { tone(2400, 0.12, 'sine', 0.014, 0.4); tone(2400, 0.12, 'sine', 0.014, 0.58); } }
+  else if (ai === 1) { G.ambT = 3.6; ambN(4.6, 0.035, 'lowpass', 380, 0.4); ambN(3, 0.008, 'bandpass', 520, 0.6, 0.5); if (r < 0.07) tone(98, 1.2, 'sawtooth', 0.01, 0.6, 0, 300); }
+  else if (ai === 2) { G.ambT = 2.4; ambN(3.2, 0.03, 'bandpass', 900, 0.5); if (r < 0.12) ambN(2.4, 0.06, 'bandpass', 1300, 0.8, 0.3); else if (r < 0.24) for (let i = 0; i < 3; i++) tone(90, 0.18, 'sine', 0.06, 0.2 + i * 0.36); }
+  else { G.ambT = 3.2; ambO(55, 4.2, 0.03); ambO(82.4, 4.2, 0.012); if (r < 0.12) for (let i = 0; i < 4; i++) tone(rnd(1400, 2200), 0.05, 'sine', 0.012, 0.3 + i * 0.09); }
+  if (ai < 3 && G.wx === 'rain') ambN(3.4, 0.03, 'highpass', 2500, 0.5);
+  if (ai < 3 && (G.night || dayPh() > 0.75) && Math.random() < 0.6) for (let i = 0; i < 3; i++) tone(4400, 0.035, 'sine', 0.006, 0.5 + i * 0.07);   // crickets at night
+}
 const sfx = {
   pop(n = 0) { tone(480 + n * 90, 0.1, 'sine', 0.2, 0, 1.9); },
   coin(k = 0) { const f = 1320 * Math.pow(2, Math.min(k, 12) / 24); tone(f, 0.07, 'square', 0.03, 0, 0, 4000); tone(f * 1.5, 0.16, 'triangle', 0.07, 0.05); },

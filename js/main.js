@@ -13,14 +13,14 @@ function frame(now) {
     ctx.setTransform(SC * DPR, 0, 0, SC * DPR, ox * SC * DPR, oy * SC * DPR);
     if (G.state === 'title' || (G.state === 'shop' && G.shopFrom === 'title') || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes' || G.state === 'wheel' || G.state === 'stats' || G.state === 'snaps') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } if (G.state === 'wheel') { BT = BT.filter(b => b.id === 'hud'); drawWheel(G.t); } if (G.state === 'stats') { BT = BT.filter(b => b.id === 'hud'); drawStats(G.t); } if (G.state === 'snaps') { BT = BT.filter(b => b.id === 'hud'); drawSnaps(G.t); } if (G.state === 'shop') { BT = BT.filter(b => b.id === 'hud'); drawShop(G.t); } drawHUD(G.t); drawFX(G.t); }
     else {
-      if (G.night) drawNight(G.t); drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
+      if (G.night) drawNight(G.t); else drawDayLight(G.t); drawPigeons(G.t); drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
       if (G.state === 'play') { drawCustomers(G.t); if (G.raid) drawRaid(G.t); }
-      drawRain(G.t); drawLights(G.t); drawSeason(G.t);   // under the order bubbles
+      drawDog(G.t); drawRain(G.t); drawLights(G.t); drawSeason(G.t);   // under the order bubbles
       drawAHSeat(G.t);
       ctx.drawImage(bg, 0, (CT - 14) * SC * DPR, bg.width, 24 * SC * DPR, 0, CT - 14, W, 24);
       if (G.state === 'play') { drawHelper(G.t); drawDirt(G.t); }
       drawStations(G.t);
-      if (G.state === 'play') { nameTags(); drawOrders(G.t); drawItems(G.t); if (G.power === false) drawBlackout(G.t); drawAHMove(G.t); }
+      if (G.state === 'play') { nameTags(); drawOrders(G.t); drawItems(G.t); drawSteam(G.t); if (G.power === false) drawBlackout(G.t); drawAHMove(G.t); }
       ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0);
       if (G.state === 'play') { drawFX(G.t); if (G.raid) drawRaidUI(G.t); if (G.tut) drawTut(G.t); }
       drawHUD(G.t);

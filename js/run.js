@@ -417,6 +417,22 @@ addEventListener('pointerup', e => {
   sfx.drop();
 });
 
+// waiting customers chat with each other now and then: one asks, the other answers
+const CHATS = [
+  ['جربت شاورما الحافوزليق؟', 'دي تحفة يا عم!'], ['الزحمة دي كلها عشان الشاي؟', 'شاي أبو الزول مفيش زيه'], ['شفت الماتش امبارح؟', 'الرحمة كسبت ٣ - ٠!'],
+  ['هو أبو حسيبة لسه مستني فلوسه؟', 'ربنا يكون في عونه 😅'], ['الجو حلو النهارده', 'أحلى من سموذي الزربوطان'], ['إنت جاي من بعيد؟', 'من آخر الكون يا باشا 🌌'],
+  ['سمعت عن الزنجوجوكوكو؟', 'فرخة ولا أناناسة؟! 🐔'], ['مين ده اللي بيبيع؟', 'ده معلم الرحمة بنفسه 😎'], ['الطابور ده هيخلص إمتى؟', 'استنى بس، الأكل يستاهل'],
+  ['سكرتاعوط بيبيع أرخص', 'بس مش أحلى 😏'], ['معاك فكة عشرة؟', 'لأ والله 😅'], ['شفت الطبق الطاير امبارح؟', 'ده كان الحنكليس بيتمشى 🛸'],
+  ['القطة دي بتاعة مين؟', 'بتاعة الحارة كلها 🐈'], ['هتاخد إيه؟', 'زي كل يوم 😋'],
+];
+function chatTick(dt) {
+  const R = G.chatR; if (R) { if ((R.t -= dt) <= 0) { const c = R.c; if (G.slots[c.slot] === c && c.st === 'wait' && !c.say && !c.hag) { c.say = R.s; c.sayT = 1.5; } G.chatR = null; } return; }
+  if ((G.chatT = (G.chatT ?? 14) - dt) > 0) return;
+  const w = G.slots.filter(c => c && c.st === 'wait' && !c.say && !c.hag && !c.dlv && !c.ghost && !c.vip && (!isFinite(c.max) || c.pat / c.max > 0.35));
+  if (w.length < 2) { G.chatT = 4; return; }
+  G.chatT = rnd(15, 25); const a = pick(w), b = pick(w.filter(c => c !== a)), [q, r] = pick(CHATS);
+  a.say = q; a.sayT = 1.5; G.chatR = { c: b, s: r, t: 1.6 };
+}
 // ---------- update ----------
 function update(dt) {
   G.t += dt;
@@ -424,7 +440,7 @@ function update(dt) {
   dispMoney = lerp(dispMoney, S.money, Math.min(1, dt * 6)); if (Math.abs(dispMoney - S.money) < 0.5) dispMoney = S.money;
   G.parts = (G.parts || []).filter(p => { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.vx *= 0.99; p.r += p.vr * dt; return p.t < p.life; });
   G.pops = (G.pops || []).filter(p => (p.t += dt) < p.life);
-  updateWalkers(dt);
+  updateWalkers(dt); updatePigeons(dt); ambTick(dt);
   if (G.toast) { G.toast.t -= dt; if (G.toast.t <= 0) G.toast = null; }
   G.achT = (G.achT || 0) - dt; if (G.achT <= 0 && !G.toast) { G.achT = 1; checkAch(); }
   musicLive = !(G.state === 'play' && G.paused) || OVL === 'set';
@@ -467,6 +483,7 @@ function update(dt) {
     }
   }
   const shut = G.raid && G.raid.shut > 0.5;
+  if (!tut && !shut && G.state === 'play') chatTick(dt);
   for (let i = 0; i < 4; i++) {
     const c = G.slots[i]; if (!c) continue;
     c.t += dt; if (c.shake > 0) c.shake -= dt;
@@ -586,13 +603,30 @@ function updateWalkers(dt) {
   G.walkT = rnd(2.5, 5.5);
   const r = Math.random(), dir = Math.random() < 0.5 ? 1 : -1;
   const ai = areaI(), kind = ai === 3 ? (r < 0.8 ? 'walk' : r < 0.9 ? 'fly' : 'ufo') : ai === 2 ? (r < 0.72 ? 'walk' : r < 0.86 ? 'tuk' : r < 0.95 ? 'bike' : 'fly')
-    : ai === 1 ? (r < 0.62 ? 'walk' : r < 0.8 ? 'bike' : r < 0.9 ? 'tuk' : 'fly') : r < 0.55 ? 'walk' : r < 0.68 ? 'tuk' : r < 0.8 ? 'bike' : r < 0.9 ? 'gas' : 'fly';
+    : ai === 1 ? (r < 0.58 ? 'walk' : r < 0.74 ? 'bike' : r < 0.84 ? 'tuk' : r < 0.93 ? 'cats' : 'fly') : r < 0.5 ? 'walk' : r < 0.62 ? 'tuk' : r < 0.74 ? 'bike' : r < 0.83 ? 'gas' : r < 0.93 ? 'cats' : 'fly';
   const w = { kind, dir, x: dir > 0 ? CLIPX[0] - 120 : CLIPX[1] + 120, y: 262, seed: rnd(0, 9), s: 0.42, v: rnd(40, 60) };
   if (kind === 'walk') { w.ch = pick(WALKERS); walkerPlan(w); }
   if (kind === 'ufo') { w.y = rnd(120, 150); w.v = 120; w.s = 0.4; }
   if (kind === 'tuk') { w.v = 140; w.s = 0.5; w.y = 294; }
   if (kind === 'bike') { w.v = 95; w.s = 0.44; w.y = 286; }
+  if (kind === 'cats') { w.two = Math.random() < 0.55; w.v = w.two ? rnd(100, 125) : rnd(34, 46); w.y = 272; w.s = 0.4; w.col = pick(['#e8933a', '#2a2a30', '#d8d4cc', '#b07a4a']); }
   if (kind === 'fly') { w.ch = S.seenDiaa && Math.random() < 0.5 ? 'diaa' : 'dola'; w.y = rnd(150, 175); w.v = 80; w.s = 0.3; }
   G.walkers.push(w);
+}
+function updatePigeons(dt) {
+  if (areaI() === 3 || G.wx === 'rain') { G.pig = null; return; }
+  const P = G.pig || (G.pig = { b: [], t: rnd(4, 10), stay: 0 });
+  if (!P.b.length) { if ((P.t -= dt) > 0) return; const n = 2 + Math.floor(Math.random() * 2), x0 = rnd(CLIPX[0] + 140, CLIPX[1] - 140), d = Math.random() < 0.5 ? 1 : -1;
+    for (let i = 0; i < n; i++) { const tx = x0 + (i - 1) * 24, ty = 268 + (i % 2) * 5; P.b.push({ x: tx - d * 130, y: ty - 120, tx, ty, dir: d, st: 'land', vx: 0, vy: 0, k: rnd(0, 6) }); }
+    P.stay = rnd(14, 26); return; }
+  P.stay -= dt;
+  const scare = P.stay <= 0 || (G.walkers || []).some(w => w.kind !== 'fly' && w.kind !== 'ufo' && w.ch !== 'rasoda' && P.b.some(b => b.st === 'peck' && Math.abs(w.x - b.x) < 80));
+  for (const b of P.b) {
+    if (b.st === 'land') { const k = Math.min(1, dt * 2.5); b.x += (b.tx - b.x) * k; b.y += (b.ty - b.y) * k; if (Math.abs(b.y - b.ty) < 1.5) { b.y = b.ty; b.st = 'peck'; } }
+    else if (b.st === 'peck') { if (scare) { b.st = 'fly'; b.dir = Math.random() < 0.5 ? -1 : 1; b.vx = b.dir * rnd(110, 170); b.vy = -rnd(80, 130); } else if (Math.random() < dt * 0.25) b.dir = -b.dir; else if (Math.sin(G.t * 1.7 + b.k) > 0.4) b.x += b.dir * dt * 8; }
+    else { b.x += b.vx * dt; b.y += b.vy * dt; b.vy -= dt * 30; }
+  }
+  P.b = P.b.filter(b => b.st !== 'fly' || (b.y > 0 && b.x > CLIPX[0] - 30 && b.x < CLIPX[1] + 30));
+  if (!P.b.length) P.t = rnd(10, 22);
 }
 

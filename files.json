@@ -1,5 +1,5 @@
 {
- "v": "00fe96893245",
+ "v": "a5a8a3fc7c1d",
  "files": [
   {
    "p": "fonts/cairo-arabic.woff2",
@@ -38,7 +38,7 @@
   },
   {
    "p": "index.html",
-   "h": "89bfecccce40e9161669dbda5352020c7c6122ddab3a80741437767e1f7f3e69",
+   "h": "edc68dfae81e013d62744329d5f3f09484f1eb270f083d700b349e8ce8345912",
    "n": 2066
   },
   {
@@ -48,8 +48,8 @@
   },
   {
    "p": "js/audio.js",
-   "h": "06e58831bacbc695ef0f3eb930ff3ab2846a3527d48a534cf2129b3230bfe1e4",
-   "n": 15401
+   "h": "6993f18fdd86b8d2dc4098f0a146e4b1005ce49a1fc0d3925809bdf086d35d2f",
+   "n": 18015
   },
   {
    "p": "js/bg.js",
@@ -63,8 +63,8 @@
   },
   {
    "p": "js/chars.js",
-   "h": "21ca851231ec9d9809404f35eef8d45d329a2c53e225326b3773e87a703f4836",
-   "n": 45348
+   "h": "838c8d205ca72ed6d2ba85fbb4508817b5ff7bcdb9080d0fe3c017fa8303ded5",
+   "n": 47247
   },
   {
    "p": "js/core.js",
@@ -73,8 +73,8 @@
   },
   {
    "p": "js/en.js",
-   "h": "31183193bfe2b16bccd13a95edd286aed622760abddaca480b707947ab8bd311",
-   "n": 92624
+   "h": "6acf5c615fb49cb83c7ba78d1e255bb7038b7b7c18faa13dc7687e6363e57415",
+   "n": 94520
   },
   {
    "p": "js/faces.js",
@@ -83,8 +83,8 @@
   },
   {
    "p": "js/main.js",
-   "h": "0cc28da9b3c0a70a595051e8999e1124af42c816aab4b3d501ed6032df837bde",
-   "n": 16282
+   "h": "dc2133ac8ce41190a647fb6db1421c5655f18132ec63bbfed05cb5aa7db04cdd",
+   "n": 16354
   },
   {
    "p": "js/products.js",
@@ -93,13 +93,13 @@
   },
   {
    "p": "js/run.js",
-   "h": "aaf1a8cee8e92294353ac136defadbc8f1761a9d3f1c6cff43374e45b6a8f6a3",
-   "n": 56693
+   "h": "f533d8e884c94f705edb0b75b70f59f6ca8ce83dc87ca42df418b4ccd30c7ef3",
+   "n": 60323
   },
   {
    "p": "js/scene.js",
-   "h": "236a176e2bb0de270a969dec0cf69db48eced34f9cf6cd307a0ff8874a3f3984",
-   "n": 110055
+   "h": "2a6835ab3d43d53453227ff32ab172eb1db16d71d7860c0765440d9c7b6d5a1e",
+   "n": 118359
   },
   {
    "p": "js/state.js",
