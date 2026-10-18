@@ -890,6 +890,8 @@ const sfx = {
   phone() { for (let r = 0; r < 2; r++) for (let i = 0; i < 6; i++) tone(i % 2 ? 1350 : 1650, 0.08, 'square', 0.04, r * 0.7 + i * 0.09, 0, 3000); },
   radio() { [0, 4, 7, 12].forEach((s, i) => tone(660 * Math.pow(2, s / 12), 0.1, 'square', 0.03, i * 0.09, 0, 2200)); noise(0.35, 0.02, 0.4, 4000); },
   wipe() { noise(0.12, 0.05, 0, 2500); },
+  zag() { for (let k = 0; k < 16; k++) tone(k % 2 ? 2250 : 1850, 0.055, 'sine', 0.045, k * 0.055); tone(1500, 0.35, 'sine', 0.04, 0.9, 1.35); },
+  ghost() { tone(420, 0.9, 'sine', 0.07, 0, 0.55); tone(630, 0.8, 'triangle', 0.03, 0.1, 0.6); noise(0.6, 0.02, 0, 3000); },
   cannon() { noise(0.9, 0.3, 0, 0, false, 320); tone(68, 0.9, 'sine', 0.4, 0, 0.4); tone(110, 0.3, 'square', 0.05, 0, 0.3, 500); },
 };
 // ---------- cassette tapes: each is a little procedural band ----------
@@ -983,7 +985,7 @@ function speak(text, pitch) { if (!voiceOn || sfxV <= 0 || !arVoice) return; try
 const KEY = 'rahma-cart-v4';
 const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store: 0, ah: 0 }, menu: {}, help: {}, tapes: { rahma: 1 }, tape: 'rahma', tut: 0, stars: {}, best: 0, diff: null, seenDiaa: 0,
   extras: {}, served: {}, album: {}, cos: { aw: 'red', lights: 0, neon: 0, gold: 0 }, cosOwn: { red: 1 }, name: '', story: 0, fin: 0, life: 0, chBest: null, meal: 0, rivalW: 0,
-  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null });
+  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0, wed: 0, qst: 0, ghost: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null, quest: {}, nightSeen: 0 });
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
@@ -1061,6 +1063,8 @@ function seedRng(s) { RNG = () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s 
 const dayKey = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 const strSeed = s => { let h = 2166136261; for (const c of s) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; };
 const GAME_URL = 'https://twisterdaark.github.io/rahma-cart/';
+let VS = null;   // a friend's challenge link (?vs=day~score~name) replays that day's challenge against their score
+try { const q = new URLSearchParams(location.search).get('vs'); if (q) { const [k, sc, n] = q.split('~'); if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(k) && isFinite(+sc)) VS = { key: k, s: Math.max(0, Math.round(+sc)), n: (n || '').slice(0, 12) }; } } catch (e) { }
 // order add-ons: an item string is 'product|x'
 const EXTRAS = {
   s: { n: 'صوص طحينة', sh: 'صوص', d: 'الشاورما والساندوتش', on: ['hafoWrap', 'hankSand'], price: 3, st: 'sauce' },
@@ -1112,14 +1116,14 @@ function boardAdd(key) {   // fries onto a chicken wrap, or falafel / ice cream 
 }
 function discover(k) {
   S.rec[k] = 1; save(); sfx.fanfare(); G.flash = 0.3; G.flashC = '#ffd23f'; burst(235, 440, 30, ['#ffd23f', '#ff8ae8', '#ffffff'], 'star', 1);
-  addPop(480, 200, '🔓 وصفة سرية: ' + PROD[k].n, '#ffe38a', 30, 2.6); toast('📒 اتسجلت في كتاب الوصفات ودخلت المنيو، و' + CH[PROD[k].ch].n + ' بيدفع فيها الضعف', '#ffe38a');
+  addPop(480, 200, '🔓 وصفة سرية: ' + PROD[k].n, '#ffe38a', 30, 2.6); moment(3, PROD[k].ch, 'وصفة سرية!', 'مين اخترع ' + PROD[k].n + ' ده؟ عبقري! 🤫'); toast('📒 اتسجلت في كتاب الوصفات ودخلت المنيو، و' + CH[PROD[k].ch].n + ' بيدفع فيها الضعف', '#ffe38a');
 }
 // regulars: every happy visit adds friendship; friends wait longer, tip more, and bring a gift at each new level
 const FRL = [6, 18, 40], FRN = ['لسه جديد', 'زبون دايم', 'صاحبك', 'أعز أصحابك'];
 const frLv = ch => { const p = (S.fr && S.fr[ch]) || 0; return p >= FRL[2] ? 3 : p >= FRL[1] ? 2 : p >= FRL[0] ? 1 : 0; };
 function befriend(c, sx) {
   if (CH[c.ch].vip || CH[c.ch].rare || CH[c.ch].dlv || c.legend) return;
-  const l0 = frLv(c.ch); S.fr[c.ch] = (S.fr[c.ch] || 0) + 1 + (c.hagOk ? 1 : 0);
+  const l0 = frLv(c.ch); S.fr[c.ch] = (S.fr[c.ch] || 0) + 1 + (c.hagOk ? 1 : 0) + (c.quest ? 3 : 0);
   const l1 = frLv(c.ch); if (l1 <= l0) return;
   const g = [0, 30, 60, 120][l1]; S.money += g; S.life += g;
   addPop(sx, 262, '❤️ هدية +' + ar(g) + ' ج', '#ffb3d0', 22, 1.8); toast('❤️ ' + CH[c.ch].n + ' بقى ' + FRN[l1] + '! جابلك هدية ' + ar(g) + ' ج', '#ffd0ea');
@@ -1154,9 +1158,10 @@ function setHolds() {
 // a day's weather and event, rolled a day ahead so the hara radio can hint at them
 function planDay(d) {
   const legend = !CHAL && d % 7 === 0, sea = !CHAL && !legend ? seasonOf(d) : null;
-  const wx = !legend && !sea && d >= 2 && grand() < 0.4 ? gpick(['hot', 'rain']) : null;
-  const ev = d >= 3 && !legend && sea !== 'ram' && grand() < 0.55 ? { k: gpick(d >= 4 ? ['power', 'match', 'raid'] : ['power', 'match']), at: grnd(22, 50) } : null;
-  return { d, wx, ev };
+  const night = !CHAL && !legend && !sea && d >= 6 && (!S.nightSeen || grand() < 0.2), wf = !CHAL && d >= 5 && !S.st.wed;
+  const wx = !night && !legend && !sea && d >= 2 && grand() < 0.4 ? gpick(['hot', 'rain']) : null;
+  const ev = !night && d >= 3 && !legend && sea !== 'ram' && (wf || grand() < 0.55) ? { k: wf ? 'wed' : gpick(d >= 5 ? ['power', 'match', 'raid', 'wed'] : d >= 4 ? ['power', 'match', 'raid'] : ['power', 'match']), at: grnd(22, 50) } : null;
+  return { d, wx, ev, night };
 }
 // hara radio: a funny bulletin mid-day, then a hint about tomorrow
 const NEWS = ['العاعاعوط كسب مسابقة أعلى صرخة للسنة التالتة على التوالي', 'الحنكليس فتح قناة يوتيوب عن الحنكلسة وعنده ٣ مشتركين', 'أبو الزول بيقول الأهرامات اتبنت عشان يبقى ليه مكان يقعد فيه',
@@ -1170,7 +1175,8 @@ function newsHint(d, pl) {
   if (sea === 'ram' && seasonOf(d - 1) !== 'ram') return 'رمضان على الأبواب، بكره الفوانيس هتنوّر 🌙';
   if (sea === 'eid') return 'بكره العيد! الكحك عند أبو حسيبة والبقشيش الضعف 🎉';
   if (!sea && d >= 6 && d % 3 === 0) return 'سكرتاعوط بيقول إنه هيفتح عربية قصادك بكره 😤';
-  if (pl && pl.ev) return { match: 'بكره ماتش الرحمة الكبير ⚽ هتبقى زحمة', power: 'شركة الكهربا بتقول ممكن تقطع بكره ⚡', raid: 'البلدية ناوية تعمل كبسة بكره 🚨' }[pl.ev.k];
+  if (pl && pl.night) return 'بكره سهرة لنص الليل… وبيقولوا فيه زباين مش من الدنيا بتظهر 👻';
+  if (pl && pl.ev) return { wed: 'بكره فيه فرح في الحارة 💍 جهّز شاورما كتير', match: 'بكره ماتش الرحمة الكبير ⚽ هتبقى زحمة', power: 'شركة الكهربا بتقول ممكن تقطع بكره ⚡', raid: 'البلدية ناوية تعمل كبسة بكره 🚨' }[pl.ev.k];
   if (pl && pl.wx) return pl.wx === 'hot' ? 'الأرصاد: بكره حر نار ☀️ الساقع هيكسّر' : 'الأرصاد: بكره مطر 🌧 جهّز الشاي';
   return null;
 }
@@ -1186,6 +1192,8 @@ const REV = {
   note: ['سجّلي على النوتة من غير كلام، ابن حلال', 'أول مرة حد يصدقني، هرجع أدفع والله 😅'],
   rec: ['جربت الوصفة السرية… مش هقول لحد 🤫', 'مين اخترع {p} ده؟ عبقري'],
   caught: ['اتمسكت وأنا بجري، بس الأكل كان يستاهل 😅'], vip: ['الكون كله بيشكرك 🌌'], dlv: ['الطلب وصل سخن والطيار مبسوط 🛵'],
+  wed: ['أحلى فرح في الحارة، والأكل كان نجم الليلة 💍', 'الزفة كانت نار والأكل أنار 🎊'], qst: ['وقف جنبي في حكايتي، جدع وابن بلد ❤️', 'ساعدني من غير ما يسأل، ربنا يخليه 📜'],
+  ghost: ['جيت من نص الليل ومحدش شافني غيرك 👻', 'بخخخ… أحلى أكل في العالم التاني'],
 };
 function rateDay() {
   const rv = G.revs || [], bad = rv.filter(r => r.k === 'angry' || r.k === 'dirty'), gd = rv.length - bad.length, gw = gd + G.perfect * 0.3;
@@ -1227,6 +1235,33 @@ function wheelGive(p) {
   if (p.k === 'none') return 'حظ أوفر المرة الجاية 😅';
   S.money += 80; return 'كسبت ٨٠ ج! 🎉';
 }
+// side quests: a regular brings a little story and a set order; finishing it pays well and makes you closer friends
+const QST = {
+  hafo: ['عندي مقابلة مع حمايا النهارده، عايز أكل يرفع راسي قدامه', 'حمايا وافق! وقال هات من الشاورما دي كل جمعة 💍'],
+  aao: ['عندي مسابقة صريخ وصوتي راح، محتاج حاجة تصلّح الحنجرة', 'عاعاعاعاعا! الصوت رجع والكاس بتاعنا 🏆'],
+  aaota: ['بعيط من الصبح ومش عارفة ليه، يمكن جعانة؟', 'طلعت جعانة فعلًا 😭 دي دموع فرحة دلوقتي'],
+  hank: ['فاتح قناة يوتيوب وعايز أصوّر فيديو أكل، اعملّي أحلى طلب', 'الفيديو جاب ٤ مشاهدات! واحدة زيادة عن المشتركين 📈'],
+  zarb: ['لقيت شغل أخيرًا! بس محتاج فطار يصحّيني', 'اترفدت عشان نمت… بس الفطار كان يستاهل 😴'],
+  jab: ['ضيّعت مفتاح البيت وأنا بجعبق، محتاج أكل أفكر بيه', 'لقيته! كان في جيبي من الأول 🔑'],
+  sakr: ['الدكتور قالي قلّل السكر… هات وماتقولش للدكتور', 'الدكتور شافني 😬 بس طلب ساندوتش هو كمان'],
+  has: ['الجيران زعلانين من الهصلصة بالليل، عايز أصالحهم بأكل', 'صالحتهم! وبقوا يهصلصوا معايا 🎶'],
+  zool: ['رايح أبني هرم جديد الويك إند، محتاج زوادة للعمال', 'الهرم خلص والعمال بيسلموا عليك 🔺'],
+  floba: ['رجعت من فرنسا وماما عاملة عزومة، عايز أكل يبيّض وشي', 'ماما عيطت وقالت ده أحلى من باريس 🇪🇬'],
+  abkh: ['عايز أكسر الرقم القياسي في كلمة تاني، اديني طاقة', 'تاني تاني تاني… الرقم اتكسر! 🥇'],
+  prince: ['جايلي ضيوف مهمين وعايز سفرة تليق بالبرنس', 'الضيوف انبهروا والبرنس رجع برنس 👑'],
+  abbas: ['عندي بطولة كمال أجسام بكره، محتاج أكل بالكوم', 'خدت المركز الأول وشلت الحكم كمان 🏋️'],
+  shawqy: ['عايز أثبت إن الآيس كريم بيتاكل في الشتا، ساعدني', 'اتثبت علميًا! والناس بتسقف 🍦'],
+  shamq: ['رايح أعمل تجربة أداء في السيرك، محتاج طاقة', 'إيييي! اتقبلت المهرج الرئيسي 🎪'],
+  dola: ['النهارده آخر محاولة طيران ليا، محتاج وقود', 'طرت ٣ ثواني كاملين! رقم قياسي 🕊'],
+};
+function pickQuest() {
+  const ks = Object.keys(QST).filter(k => !S.quest[k]); if (!ks.length) return null;
+  const met = ks.filter(k => S.album[k]), ch = pick(met.length ? met : ks), up = owned().filter(p => !PROD[p].sea), own = OWN[ch];
+  const ord = own && has(own) ? [own] : []; while (ord.length < Math.min(S.day >= 8 ? 3 : 2, up.length)) { const p = pick(up); if (!ord.includes(p)) ord.push(p); }
+  return { ch, ord, at: rnd(30, 55), on: 0 };
+}
+// the day's best moment, kept for the comic snapshot on the end screen
+function moment(pr, ch, big, cap) { if (CHAL || !CH[ch]) return; if (!G.moment || pr >= G.moment.pr) G.moment = { pr, ch, big, cap }; }
 // daily missions
 function mkMissions() {
   const d = S.day, r = 12 + d * 3, pool = [
@@ -1293,10 +1328,10 @@ function storyNext() {
 }
 function storyReward() { S.money += 200; dispMoney = S.money - 200; save(); sfx.fanfare(); burst(480, 300, 40, ['#ffd23f', '#ffffff', '#ff8ae8'], 'star', 1.2); }
 // daily challenge
-function startChallenge() {
+function startChallenge(k) {
   if (CHAL) return;
-  const key = dayKey(), seed = strSeed('rahma' + key);
-  REAL = S; CHAL = { key, seed, area: seed % 4 };
+  const key = k || dayKey(), seed = strSeed('rahma' + key);
+  REAL = S; CHAL = { key, seed, area: seed % 4, vs: VS && VS.key === key ? VS : null };
   S = Object.assign(fresh(), { day: 6, diff: 'med', tut: 1, money: 0, seenDiaa: 1, up: { speed: 2, pat: 1, price: 0, store: 2, ah: 2 }, help: { autoAH: 1 },
     menu: Object.fromEntries(MENU_SHOP.map(([p]) => [p, 1])), extras: { s: 1, i: 1 }, tapes: REAL.tapes, tape: REAL.tape, cos: REAL.cos, cosOwn: REAL.cosOwn, name: REAL.name });
   seedRng(seed); saved = null; newDay(); dispMoney = 0;
@@ -1307,7 +1342,8 @@ function exitChallenge() {
 }
 function shareScore() {
   const txt = CHAL.endless ? '♾ المود اللانهائي في عربية الرحمة\nوصلت لمستوى ' + ar(CHAL.lvl) + ' وعملت ' + ar(G.chScore) + ' ج! تقدر تغلبني؟\n' + GAME_URL
-    : '🏆 تحدي عربية الرحمة (' + ar(CHAL.key) + ')\nعملت ' + ar(G.chScore) + ' ج في يوم واحد! تقدر تغلبني؟\n' + GAME_URL;
+    : '🏆 تحدي عربية الرحمة (' + ar(CHAL.key) + ')\n' + (CHAL.vs && G.chScore > CHAL.vs.s ? 'غلبت ' + (CHAL.vs.n || 'صاحبي') + ' وعملت ' : 'عملت ') + ar(G.chScore) + ' ج في يوم واحد! تقدر تغلبني؟ افتح اللينك وجرّب نفس اليوم\n'
+      + GAME_URL + '?vs=' + encodeURIComponent(CHAL.key + '~' + G.chScore + '~' + (S.name || '').replace(/~/g, ''));
   try { if (navigator.share) { navigator.share({ text: txt }).catch(() => { }); return; } } catch (e) { }
   try { navigator.clipboard.writeText(txt).then(() => toast('اتنسخ! ابعته لصحابك 📋', '#9be37a'), () => toast('صوّر الشاشة وابعتها لصحابك 📸')); } catch (e) { toast('صوّر الشاشة وابعتها لصحابك 📸'); }
 }
@@ -1369,6 +1405,7 @@ const fullStock = () => { const o = {}; for (const k in STOCK) o[k] = capOf(k); 
 function newDay() {
   const legend = !CHAL && S.day % 7 === 0, sea = !CHAL && !legend ? seasonOf(S.day) : null;
   const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0, pl = !CHAL && S.pre && S.pre.d === S.day ? S.pre : planDay(S.day), wx = pl.wx;
+  if (!CHAL) { if (pl.night) S.nightSeen = 1; if (pl.ev && pl.ev.k === 'wed') S.st.wed++; }
   if (!CHAL) S.pre = S.pre && S.pre.d === S.day + 1 ? S.pre : planDay(S.day + 1);
   let noteR = null;   // yesterday's tab: friends are likelier to come back and pay double
   if (!CHAL && S.note.length) { noteR = { paid: 0, n: 0, gone: 0 }; for (const nt of S.note) { if (Math.random() < 0.55 + 0.12 * frLv(nt.ch)) { noteR.paid += nt.a * 2; noteR.n++; } else noteR.gone++; } S.money += noteR.paid; S.life += noteR.paid; S.note = []; save(); }
@@ -1378,7 +1415,7 @@ function newDay() {
   G = { state: 'intro', t: G.t, time: DAYLEN, dayT: 0, slots: [null, null, null, null], spawnT: 1.2, earned: 0, spent: 0, happy: 0, angry: 0, perfect: 0,
     combo: 0, bestCombo: 0, comboT: 0, parts: [], pops: [], coins: [], toast: null, bird: null, walkers: G.walkers || [], walkT: 1,
     birdAt: (S.diff === 'hard' && S.day >= 2) || (S.diff === 'med' && S.day >= 3) ? grnd(25, 60) : -1,
-    diaaAt: !sea && S.day >= 2 && (grand() < 0.3 || (S.day >= 3 && !S.seenDiaa)) ? grnd(20, 50) : -1,
+    diaaAt: !sea && !pl.night && S.day >= 2 && (grand() < 0.3 || (S.day >= 3 && !S.seenDiaa)) ? grnd(20, 50) : -1,
     vipLeft: legend ? 0 : S.day >= 2 ? 1 + (S.day >= 4 ? 1 : 0) : 0, flash: 0, flashC: '#fff', shake: 0, press: {}, introT: 0, endT: 0, lastTick: 99,
     board: { st: 'empty', fill: null, wrapT: 0 }, taps: [-1, -1, -1, -1], fry: -1, kettle: -1, items: {}, born: {}, drag: null, sel: null, missed: {},
     stock: fullStock(), ah: { st: 'sit', t: 0, x: AHX, y: AHY, q: [], tgt: null, say: null, sayT: 0, warned: {} },
@@ -1388,7 +1425,8 @@ function newDay() {
     cnt: {}, favN: 0, exN: 0, caught: 0, bonus: 0, ms: [], storyQ: null, storyL: 0, storyT: 0,
     sea, wx, rival: rival ? { e: 0 } : null, iftar: sea === 'ram' ? { at: 40, on: 0 } : null, iftarT: 0, meals: 0,
     noteR, dirt: 0, dirtN: 0, wipe: null, revs: [], news: !CHAL && S.day >= 2 ? [{ at: 24, s: pick(NEWS) }].concat(hint ? [{ at: 58, s: hint }] : []) : [],
-    mk: mkFor(S.day), dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [] };
+    mk: mkFor(S.day), dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [],
+    night: !!pl.night, ghostQ: pl.night ? [grnd(26, 36), grnd(56, 66)] : [], qst: !CHAL && !legend && !pl.night && S.day >= 4 ? pickQuest() : null, moment: null, lastCh: null };
   if (!CHAL) { G.ms = mkMissions(); G.forceThief = G.ms.some(m => m.k === 'thief'); const q = storyQueue(); if (q.length) { G.storyQ = q; G.state = 'story'; } }
   dispMoney = S.money;
 }
@@ -1438,12 +1476,13 @@ function spawn() {   // returns false when it held back, so the timer retries so
   if (meal) { const c = G.slots[slot]; c.meal = 1; c.max *= 1.15; c.pat = c.max; }
   return true;
 }
+function roomFor() { const free = [0, 1, 2, 3].filter(i => !G.slots[i]); return free.length && G.slots.filter(c => c && (c.st === 'wait' || c.st === 'in')).length < (S.day <= 10 ? 3 : 4) ? free : null; }
 function custAt(x, y) { if (G.raid && G.raid.shut > 0.5) return null; for (const c of G.slots) if (c && c.st === 'wait' && Math.abs(x - SLOTX[c.slot]) < 84 && y > 50 && y < CT + 20) return c; return null; }
 function wants(c, p) { return c && c.st === 'wait' && c.order.some(o => oKey(o) === p && !o.done); }
 function runAt(x, y) { for (const c of G.slots) if (c && c.st === 'run' && Math.abs(x - SLOTX[c.slot] - (c.rx || 0)) < 90 && y > 40 && y < CT + 10) return c; return null; }
 function catchThief(c) {
   const x = SLOTX[c.slot] + c.rx; S.money += c.due; G.earned += c.due; S.life += c.due; G.caught++; S.st.thief++;
-  c.st = 'angry'; c.t = 0; c.say = 'خلاص خلاص هدفع 😅'; c.sayT = 99; if (G.revs) G.revs.push({ ch: c.ch, k: 'caught' });
+  c.st = 'angry'; c.t = 0; c.say = 'خلاص خلاص هدفع 😅'; c.sayT = 99; if (G.revs) G.revs.push({ ch: c.ch, k: 'caught' }); moment(2, c.ch, 'مسكتك!', 'خلاص خلاص هدفع… بس الأكل كان يستاهل الجري 😅');
   addPop(x, 150, 'مسكته! +' + ar(c.due) + ' ج', '#9be37a', 30); for (let i = 0; i < 6; i++) G.coins.push({ x0: x + rnd(-20, 20), y0: 200, t: -i * 0.05, d: 0.6, k: i });
   burst(x, 160, 20, ['#ffd23f', '#ffffff', '#9be37a'], 'star'); sfx.cash(); sfx.squawk(); buzz(30); G.shake = 0.2;
 }
@@ -1468,6 +1507,7 @@ function deliver(c, key) {
   }
   takeItem(key);
   G.cnt[o.p] = (G.cnt[o.p] || 0) + 1; if (o.x) G.exN++;
+  if (o.n > 1) { o.n--; sfx.drop(); burst(sx + 70, 140, 6, ['#ff8ae8', '#ffffff'], 'heart', 0.5); addPop(sx + 66, 120, 'فاضل ' + ar(o.n), '#ffe9b8', 20, 0.8); if (isFinite(c.max)) c.pat = Math.min(c.max, c.pat + c.max * 0.05); buzz(12); return; }
   o.done = true; sfx.drop(); burst(sx + 70, 140, 8, ['#9be37a', '#ffffff'], 'star', 0.5); buzz(12);
   if (G.tut) tutEvent('deliver');
   if (c.order.every(o => o.done)) complete(c);
@@ -1476,8 +1516,8 @@ function complete(c) {
   const sx = SLOTX[c.slot], f = isFinite(c.max) ? c.pat / c.max : 0.8;
   G.combo++; G.bestCombo = Math.max(G.bestCombo, G.combo);
   const mult = 1 + 0.08 * Math.min(G.combo - 1, 5);
-  const fav = c.order.some(o => PROD[o.p].ch === c.ch), base = c.order.reduce((s, o) => s + PROD[o.p].price * (PROD[o.p].ch === c.ch ? 2 : 1) + (o.x ? EXTRAS[o.x].price : 0), 0);
-  const pay = Math.round(base * (1 + 0.15 * S.up.price) * (c.vip ? 3 : 1) * (c.dlv ? 1.4 : 1) * mult * area().pay * (G.matchT > 0 ? 1.3 : 1) * (c.tr === 'rush' ? 1.5 : 1) * (c.meal ? 1.25 : 1) * (G.iftarT > 0 ? 1.25 : 1) * (c.disc || 1) * (S.grow >= 2 ? 1.15 : 1));
+  const fav = c.order.some(o => PROD[o.p].ch === c.ch), base = c.order.reduce((s, o) => s + (PROD[o.p].price * (PROD[o.p].ch === c.ch ? 2 : 1) + (o.x ? EXTRAS[o.x].price : 0)) * (o.t || 1), 0);
+  const pay = Math.round(base * (1 + 0.15 * S.up.price) * (c.vip ? 3 : 1) * (c.dlv ? 1.4 : 1) * mult * area().pay * (G.matchT > 0 ? 1.3 : 1) * (c.tr === 'rush' ? 1.5 : 1) * (c.meal ? 1.25 : 1) * (G.iftarT > 0 ? 1.25 : 1) * (c.disc || 1) * (S.grow >= 2 ? 1.15 : 1) * (c.ghost ? 2.5 : 1));
   const tip = Math.round(pay * f * 0.2 * (S.help.tips ? 2 : 1) * (c.tr === 'rich' ? 3 : 1) * (G.sea === 'eid' ? 2 : 1) * (1 + 0.3 * frLv(c.ch))) + (c.tr === 'rich' ? 5 : 0);
   G.happy++; if (fav) G.favN++; served(c.ch, sx, 240);
   if (c.tr === 'thief') {   // runs off without paying: tap him to get the money
@@ -1487,14 +1527,17 @@ function complete(c) {
   const got = c.noteOk ? 0 : pay + tip; if (c.noteOk) S.note.push({ ch: c.ch, a: pay + tip });
   S.money += got; G.earned += got; S.life += got;
   const rp = c.order.find(o => PROD[o.p].rec), fp = c.order.find(o => PROD[o.p].ch === c.ch);
-  if (G.revs) G.revs.push({ ch: c.ch, k: CH[c.ch].vip ? 'vip' : c.dlv ? 'dlv' : c.noteOk ? 'note' : c.hagOk ? 'hag' : rp ? 'rec' : fav ? 'fav' : f > 0.66 ? 'fast' : 'ok', p: (rp || fp || c.order[0]).p });
+  if (G.revs) G.revs.push({ ch: c.ch, k: CH[c.ch].vip ? 'vip' : c.wed ? 'wed' : c.quest ? 'qst' : c.ghost ? 'ghost' : c.dlv ? 'dlv' : c.noteOk ? 'note' : c.hagOk ? 'hag' : rp ? 'rec' : fav ? 'fav' : f > 0.66 ? 'fast' : 'ok', p: (rp || fp || c.order[0]).p });
   if (S.day >= 3) G.dirt = Math.min(1, (G.dirt || 0) + 0.035);
   S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
-  befriend(c, sx);
+  befriend(c, sx); G.lastCh = c.ch;
+  if (c.quest && !CHAL) { S.quest[c.ch] = 1; S.st.qst++; const r = 50 + 10 * S.day; S.money += r; S.life += r; G.earned += r; addPop(sx, 262, '📜 مكافأة الحكاية +' + ar(r) + ' ج', '#ffe9b8', 22, 2); toast('📜 ' + CH[c.ch].n + ': ' + QST[c.ch][1], '#ffe9b8', 4.2); moment(5, c.ch, 'حكاية!', QST[c.ch][1]); }
+  if (c.wed) { const nq = 20 + S.day * 4; S.money += nq; S.life += nq; G.earned += nq; addPop(sx, 262, '💸 النقطة +' + ar(nq) + ' ج', '#ffd0ea', 24, 2); sfx.zag(); burst(sx, 150, 30, ['#ff8ae8', '#ffffff', '#ffd23f'], 'heart', 1); moment(6, c.ch, 'زغروطة!', 'أحلى فرح في الحارة، وأكلك كان نجم الليلة 💍'); }
+  if (c.ghost) moment(4, c.ch, 'بخخخ!', 'جيت من نص الليل… وأكلك رجّعني للدنيا 👻');
   if (c.legend && c.waves > 0) { c.waves--; c.order = legOrder().map(p => ({ p: pid(p), x: pex(p), done: false })); c.pat = c.max; c.t = 0; c.say = 'كمان! 🌌'; c.sayT = 1.6; }
   else {
     c.st = 'happy'; c.t = 0; c.say = G.sea === 'eid' && Math.random() < 0.5 ? 'كل سنة وانت طيب 🎉' : G.sea === 'ram' && Math.random() < 0.3 ? 'رمضان كريم 🌙' : pick(CH[c.ch].joy); c.sayT = 99;
-    if (c.legend) { S.st.leg++; const b = 40 + S.day * 6; S.money += b; S.life += b; G.bonus += b; addPop(480, 130, '🌟 مكافأة أسطورية +' + ar(b) + ' ج', '#ffe38a', 30, 2.2); sfx.fanfare(); }
+    if (c.legend) { moment(7, 'cosmic', 'أسطوري!', 'الكون كله شبعان النهارده بفضلك 🌌'); S.st.leg++; const b = 40 + S.day * 6; S.money += b; S.life += b; G.bonus += b; addPop(480, 130, '🌟 مكافأة أسطورية +' + ar(b) + ' ج', '#ffe38a', 30, 2.2); sfx.fanfare(); }
   }
   const rating = f > 0.66 ? ['تحفة!', '#ffd23f'] : f > 0.36 ? ['حلو!', '#9be37a'] : ['ماشي', '#ffe9b8'];
   if (f > 0.66) G.perfect++;
@@ -1508,6 +1551,7 @@ function complete(c) {
   burst(sx, 150, 5, ['#ff5e7a'], 'heart', 0.5);
   sfx.cash(); sfx.talk(CH[c.ch].f * 1.2); speak(c.say, CH[c.ch].vp); buzz(20);
   if (G.combo >= 2) { G.comboT = 1.2; sfx.combo(G.combo); }
+  if (G.combo >= 5) moment(1 + G.combo / 100, c.ch, 'كومبو ×' + ar(G.combo) + '!', ar(G.combo) + ' زباين ورا بعض من غير ولا غلطة؟! إيدك دي ولا ماكينة؟');
   if (G.combo === 3 || G.combo === 5 || G.combo % 8 === 0) { G.flash = 0.35; G.flashC = '#ffd23f'; G.shake = 0.25; burst(480, 200, 30, ['#ffd23f', '#ff8a3d', '#ffffff'], 'star', 1.2); sfx.fanfare(); }
   if (G.tut) tutEvent('complete');
 }
@@ -1696,7 +1740,7 @@ function tutAllows(kind, key) {
 }
 
 // ---------- input ----------
-let BT = [];
+let BT = [], UPFN = null;   // UPFN runs on the next pointerup: phones only allow sharing from a finished tap
 function btn(x, y, w, h, fn, id = '', slide = false) { BT.push({ x, y, w, h, fn, id, slide }); }
 function hitBT(x, y, f) { for (let i = BT.length - 1; i >= 0; i--) { const b = BT[i]; if ((!f || f(b)) && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) return b; } return null; }
 function toGame(e) {
@@ -1733,6 +1777,7 @@ cv.addEventListener('pointerdown', e => {
 });
 cv.addEventListener('pointermove', e => { const p = toGame(e); ptr = p; if (slideB) slideB.fn(p.x, p.y); if (G.wipe) wipeTo(p.x, p.y); if (G.drag) { G.drag.x = p.x; G.drag.y = p.y; if (Math.hypot(p.x - G.drag.sx, p.y - G.drag.sy) > 10) G.drag.moved = true; } });
 addEventListener('pointerup', e => {
+  if (UPFN) { const f = UPFN; UPFN = null; try { f(); } catch (err) { } }
   slideB = null; G.wipe = null; if (!G.drag) return; const p = toGame(e), d = G.drag; G.drag = null;
   if (!d.moved) { G.sel = G.sel === d.key ? null : d.key; return; }
   const c = custAt(p.x, p.y);
@@ -1820,6 +1865,14 @@ function update(dt) {
       const c = G.slots[sl2]; c.dlv = 1; c.max = c.pat = S.diff === 'easy' ? 70 : 40; sfx.phone(); toast('📞 طلب دليفري! جهّزه قبل ما الطيار يمشي 🛵', '#ffe38a');
     }
   }
+  const Q = G.qst; if (!tut && Q && !Q.on && G.dayT >= Q.at && G.time > 20 && !G.raid && !G.slots.some(c => c && c.ch === Q.ch)) {
+    const free = roomFor(); if (free) { Q.on = 1; const sl = pick(free); makeCust(Q.ch, Q.ord, sl); const c = G.slots[sl]; c.quest = 1; c.max *= 1.6; c.pat = c.max; c.say = 'محتاجك في خدمة 📜'; c.sayT = 3; sfx.vip(); toast('📜 حكاية ' + CH[Q.ch].n + ': ' + QST[Q.ch][0], '#ffe9b8', 4.5); }
+  }
+  if (!tut && G.ghostQ && G.ghostQ.length && G.dayT >= G.ghostQ[0] && G.time > 12 && !G.raid) {   // a midnight customer: see-through, wants the kiosk's things, pays 2.5x
+    const free = roomFor(); if (free) { G.ghostQ.shift(); const here = G.slots.filter(Boolean).map(c => c.ch), ch = gpick(POOL.filter(c => !here.includes(c))), ord = ['cig', 'nut', 'wbr'].sort(() => grand() - 0.5).slice(0, grand() < 0.4 ? 2 : 1);
+      ord.push(gpick(owned().filter(p => !PROD[p].sea))); const sl = pick(free); makeCust(ch, ord, sl); const c = G.slots[sl]; c.ghost = 1; c.max *= 1.3; c.pat = c.max; c.say = 'بخخخ… أنا جاي من نص الليل 👻'; c.sayT = 2.6; G.diaaHint = 6; S.st.ghost++;
+      sfx.ghost(); toast('👻 زبون من نص الليل! طلباته عند أبو حسيبة وبيدفع ٢.٥ ضعف', '#d9c8ff', 3); }
+  }
   if (!tut) { updateEvents(dt); updateDirt(dt); updateNews(); }
   if (!tut && G.hlp) updateHelper(dt);
   if (!tut && CHAL && CHAL.endless) endlessTick(dt);
@@ -1836,14 +1889,15 @@ function endDay() {
   }
   if (CHAL) {
     const sc = Math.max(0, G.earned - G.spent), b = REAL.chBest && REAL.chBest.d === CHAL.key ? REAL.chBest.s : 0;
-    G.chScore = sc; G.chPrev = b; G.stars = 0; REAL.chBest = { d: CHAL.key, s: Math.max(b, sc) };
+    G.chScore = sc; G.chPrev = b; G.stars = 0; if (CHAL.key === dayKey()) REAL.chBest = { d: CHAL.key, s: Math.max(b, sc) };
     try { localStorage.setItem(KEY, JSON.stringify(REAL)); } catch (e) { }
     sfx.fanfare(); return;
   }
   for (const m of G.ms) if (!m.done && m.k === 'noAngry' && G.angry === 0 && G.happy >= 3) missionDone(m, true);
   rateDay();
-  if (G.rival) { G.rivalWin = G.earned - G.spent >= G.rival.e; if (G.rivalWin) { G.rivalB = 20 + S.day * 4; S.money += G.rivalB; S.life += G.rivalB; S.rivalW++; } }
+  if (G.rival) { G.rivalWin = G.earned - G.spent >= G.rival.e; if (G.rivalWin) { G.rivalB = 20 + S.day * 4; S.money += G.rivalB; S.life += G.rivalB; S.rivalW++; if (G.lastCh) moment(4, G.lastCh, 'غلبته!', 'سكرتاعوط قفل عربيته وروّح يعيط 😂'); } }
   const tg = target(S.day), net = G.earned - G.spent; G.stars = net >= tg * 2 ? 3 : net >= tg * 1.5 ? 2 : net >= tg ? 1 : 0;
+  if (!G.moment && G.lastCh) G.moment = { pr: 0, ch: G.lastCh, big: G.stars ? 'تحفة!' : 'معلش!', cap: G.stars ? JOKE[G.lastCh] || 'تسلم إيدك يا معلم!' : 'بكره أحسن إن شاء الله، الرحمة واسعة 🤲' };
   S.stars[S.day] = Math.max(S.stars[S.day] || 0, G.stars); S.best = Math.max(S.best, G.bestCombo); if (G.stars === 3) S.st.s3 = 1;
   if (G.stars) { S.day++; sfx.fanfare(); } else sfx.wrong(); save();
 }
@@ -1852,9 +1906,16 @@ function startEvent(k) {
   if (k === 'power') { G.power = false; G.powerT = 0; sfx.power(); G.shake = 0.2; toast('⚡ الكهربا قطعت! دوس على أبو حسيبة يشغّل المولّد', '#ffe38a'); G.ah.say = 'دوس عليا أشغّل المولّد ⚡'; G.ah.sayT = 4; }
   if (k === 'match') { G.matchT = 25; sfx.fanfare(); toast('⚽ ماتش الرحمة بدأ! زحمة والأسعار +٣٠٪', '#9be37a'); }
   if (k === 'raid') { G.raid = { st: 'come', t: 0, x: CLIPX[0] - 40, shut: 0 }; sfx.siren(); toast('🚨 كبسة بلدية! اقفل العربية قبل ما المفتش يوصل', '#ffd0c8'); }
+  if (k === 'wed') {   // the groom's family orders for the whole wedding: several of each, a long timer, and النقطة on top
+    const free = roomFor(); if (!free || G.raid) return false;
+    const here = G.slots.filter(Boolean).map(c => c.ch), ch = gpick(POOL.filter(c => !here.includes(c))), m = gpick(['hafoWrap', 'hankSand', 'mixWrap', 'friesWrap', 'falSand'].filter(has)), dr = gpick(['aaoJuice', 'halaq', 'zarbSmoothie', 'aaotaMilk'].filter(has));
+    const n1 = 3 + (S.day >= 9 ? 1 : 0), n2 = 2 + (S.day >= 12 ? 1 : 0), sl = pick(free); makeCust(ch, [m, dr], sl);
+    const c = G.slots[sl]; c.wed = 1; c.order[0].n = c.order[0].t = n1; c.order[1].n = c.order[1].t = n2; if (isFinite(c.max)) c.max = c.pat = patienceFor(1) * (1 + 0.4 * (n1 + n2 - 1)) * (1 + 0.1 * frLv(ch));
+    c.say = 'الفرح النهارده! 🎊'; c.sayT = 3; sfx.zag(); burst(SLOTX[sl], 150, 26, ['#ff8ae8', '#ffffff', '#ffd23f'], 'conf', 0.9); toast('💍 فرح في الحارة! عايزين ' + ar(n1) + ' ' + PROD[m].n + ' و' + ar(n2) + ' ' + PROD[dr].n, '#ffd0ea', 3.6);
+  }
 }
 function updateEvents(dt) {
-  if (G.ev && !G.ev.on && G.dayT >= G.ev.at && G.time > 15) { G.ev.on = 1; startEvent(G.ev.k); }
+  if (G.ev && !G.ev.on && G.dayT >= G.ev.at && G.time > 15 && startEvent(G.ev.k) !== false) G.ev.on = 1;
   if (G.rival && G.time > 0) G.rival.e += target(S.day) * 0.9 / DAYLEN * dt;
   const I = G.iftar; if (I && !I.on && G.dayT >= I.at && G.time > 10) { I.on = 1; G.iftarT = 30; sfx.cannon(); G.shake = 0.4; G.flash = 0.3; G.flashC = '#ffd86b'; toast('🌙 مدفع الإفطار! زحمة الفطار بدأت والأسعار +٢٥٪', '#ffe38a'); }
   if (G.iftarT > 0) G.iftarT -= dt;
@@ -2064,9 +2125,10 @@ function drawCustomers(t) {
     const want = (G.drag || G.sel) && wants(c, prodOf((G.drag && G.drag.key) || G.sel));
     if (want) glow(sx, CT - 110, 130, '#9bff7a', 0.45 + 0.2 * Math.sin(t * 8));
     if (c.vip) glow(sx, CT - 100, 150, '#ffd86b', 0.5);
+    if (c.ghost) { glow(sx, CT - 110 + off, 160, '#b07aff', 0.5 + 0.2 * Math.sin(t * 3)); dy -= 10 + Math.sin(t * 2 + c.slot) * 6; }
     if (c.st === 'run') glow(sx + dx, CT - 110, 120, '#ff5a3a', 0.35 + 0.25 * Math.sin(t * 14));
     if (G.wx === 'rain' || G.sea === 'eid') { ctx.save(); ctx.translate(0, off + dy); if (G.wx === 'rain') umbrella(sx + dx, c.slot); else balloon(sx + dx - 62, c.slot, t); ctx.restore(); }
-    ctx.save(); ctx.translate(sx + dx, CT + 8 + off + dy); const s = 0.84; ctx.scale(s / sq, s * sq); sprite(sl('c' + c.slot), c.ch + mood + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => CH[c.ch].d(mood, t), SC * DPR * s);
+    ctx.save(); if (c.ghost) ctx.globalAlpha = 0.68 + 0.12 * Math.sin(t * 2.5 + c.slot); ctx.translate(sx + dx, CT + 8 + off + dy); const s = 0.84; ctx.scale(s / sq, s * sq); sprite(sl('c' + c.slot), c.ch + mood + tb(15, c.slot * 0.25), -200, -310, 400, 380, () => CH[c.ch].d(mood, t), SC * DPR * s);
     if (mood === 2 && c.st !== 'out') { ctx.save(); ctx.globalAlpha = 0.25; ctx.globalCompositeOperation = 'source-atop'; ctx.restore(); }
     ctx.restore();
     if (mood === 2 && c.st !== 'out') for (let k = 0; k < 3; k++) { const p = (t * 1.5 + k / 3) % 1; ctx.save(); ctx.globalAlpha = (1 - p) * 0.85; E(sx + (c.rx || 0) - 34 + k * 34, CT - 200 - p * 40 + off, 7 + p * 9, 7 + p * 9, '#ffffff', { ol: false, shade: false }); ctx.restore(); }
@@ -2087,11 +2149,12 @@ function drawOrders(t) {
     if (c.hag === 1 && c.st === 'wait') for (const [dx, yes] of HAGB) { const r = 19 * (1 + Math.sin(t * 6) * 0.05); E(sx + dx, 110, r, r, yes ? '#2e9d4a' : '#c62828', { lw: 2.6, hl: 0.4, v: false }); T(yes ? '✓' : '✗', sx + dx, 111, 22, '#fff', FD); }
     if (c.st === 'wait') {
       const p = RRp(cx - 30, y0, 60, h, 30);
-      ctx.fillStyle = c.vip ? 'rgba(255,240,190,.88)' : c.meal ? 'rgba(240,214,160,.94)' : 'rgba(255,255,255,.82)'; ctx.fill(p); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(28,18,12,.6)'; ctx.stroke(p);
+      ctx.fillStyle = c.vip ? 'rgba(255,240,190,.88)' : c.wed ? 'rgba(255,214,236,.94)' : c.ghost ? 'rgba(226,212,255,.9)' : c.meal ? 'rgba(240,214,160,.94)' : 'rgba(255,255,255,.82)'; ctx.fill(p); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(28,18,12,.6)'; ctx.stroke(p);
       c.order.forEach((o, j) => {
         const yy = y0 + 62 + j * 56;
         ctx.save(); if (o.done) ctx.globalAlpha = 0.35; prodIcon(oKey(o), cx, yy, 0.72); ctx.restore();
         if (o.done) { dot(cx + 16, yy - 14, 10, '#2e9d4a'); T('✓', cx + 16, yy - 13, 13, '#fff'); }
+        else if (o.t > 1) { dot(cx - 17, yy - 15, 12, '#c2185b'); T('×' + ar(o.n), cx - 17, yy - 14, 12, '#fff', FD); }
       });
       if (c.vip) T('×٣', cx, y0 - 10, 18, '#b8860b', FD, 'center', 4, '#fff6d8');
       const hy = y0 + h + 20;
@@ -2111,8 +2174,8 @@ function drawOrders(t) {
 function nameTags() {
   if (G.raid && G.raid.shut > 0.3) return;
   for (const c of G.slots) {
-    if (!c || c.st === 'out') continue; const sx = SLOTX[c.slot] + (c.rx || 0), nm = c.legend && c.st === 'wait' ? '🌟 موجة ' + ar(3 - c.waves) + ' من ٣' : CH[c.ch].n;
-    const p = RRp(sx - 66, CT - 4, 132, 22, 11); ctx.fillStyle = CH[c.ch].rare ? '#b8860b' : c.vip ? '#5b3cc4' : c.dlv ? '#c62828' : 'rgba(28,18,12,.85)'; ctx.fill(p);
+    if (!c || c.st === 'out') continue; const sx = SLOTX[c.slot] + (c.rx || 0), nm = c.legend && c.st === 'wait' ? '🌟 موجة ' + ar(3 - c.waves) + ' من ٣' : (c.wed ? '💍 فرح ' : c.quest ? '📜 ' : c.ghost ? '👻 ' : '') + CH[c.ch].n;
+    const p = RRp(sx - 66, CT - 4, 132, 22, 11); ctx.fillStyle = CH[c.ch].rare ? '#b8860b' : c.vip ? '#5b3cc4' : c.dlv ? '#c62828' : c.wed ? '#c2185b' : c.quest ? '#8a5a1a' : c.ghost ? '#4a2a8a' : 'rgba(28,18,12,.85)'; ctx.fill(p);
     T(nm, sx, CT + 7, fit(nm, 122, 13), '#ffe9b8');
     const fl = frLv(c.ch); if (fl) { const hp = heartP(sx + 74, CT + 8, 11); ctx.fillStyle = '#ff4f7a'; ctx.fill(hp); ctx.lineWidth = 2; ctx.strokeStyle = OLC; ctx.stroke(hp); T(ar(fl), sx + 74, CT + 6, 12, '#fff', FD); }
     if (c.tr) { E(sx - 70, CT + 7, 13, 13, c.tr === 'thief' ? '#ffd0c8' : '#fff3d6', { lw: 2, hl: 0, v: false }); T(TRAITS[c.tr].i, sx - 70, CT + 8, 15, '#000'); }
@@ -2231,7 +2294,7 @@ function drawFreezer(t) {
   badge('freezer', f.x + 26, f.y + f.h - 10);
 }
 const srcPos = k => k === 'freezer' ? [ST.freezer.x + ST.freezer.w - 24, ST.freezer.y + 10] : [SRC[k].x, SRC[k].y];
-function diaaNeeds() { const c = G.state === 'play' && G.slots && G.slots.find(c => c && c.ch === 'diaa' && c.st === 'wait'); return c ? { c, need: c.order.filter(o => !o.done && SRC[o.p]).map(o => o.p) } : null; }
+function diaaNeeds() { const c = G.state === 'play' && G.slots && G.slots.find(c => c && (c.ch === 'diaa' || c.ghost) && c.st === 'wait'); return c ? { c, need: c.order.filter(o => !o.done && SRC[o.p]).map(o => o.p) } : null; }
 function drawKiosk(t) {
   const dn = diaaNeeds(), need = dn ? dn.need : [];
   if (need.length) glow(914, 112, 50, '#ffe066', 0.5 + 0.3 * Math.sin(t * 6));
@@ -2356,6 +2419,49 @@ function drawReviews() {
   T('دوس في أي حتة عشان تقفل', 480, 504, 12, '#9aa0b0');
   btn(0, 0, W, H, () => { G.revOpen = 0; sfx.tap(); });
 }
+// the day's best moment as a comic panel: shown from the end screen and shared as an image
+function drawComic(x, y, w, h, m, d) {
+  const ox = x + w * 0.3, oy = y + h * 0.62, fr = RRp(x, y, w, h, 8);
+  ctx.save(); ctx.clip(fr);
+  const g = ctx.createRadialGradient(ox, oy, 20, ox, oy, w * 0.8); g.addColorStop(0, '#fff6b0'); g.addColorStop(0.55, '#ffc24a'); g.addColorStop(1, '#ff7a2a'); ctx.fillStyle = g; ctx.fillRect(x, y, w, h);
+  ctx.beginPath(); for (let i = 0; i < 20; i++) { const a = i / 20 * Math.PI * 2; ctx.moveTo(ox, oy); ctx.arc(ox, oy, w * 1.2, a, a + Math.PI / 20); ctx.closePath(); } ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.fill();
+  ctx.beginPath(); for (let yy = y + 6, r = 0; yy < y + h; yy += 13, r++) for (let xx = x + 6 + (r % 2) * 6.5; xx < x + w; xx += 13) { ctx.moveTo(xx + 2.4, yy); ctx.arc(xx, yy, 2.4, 0, Math.PI * 2); } ctx.fillStyle = 'rgba(190,50,10,.15)'; ctx.fill();
+  ctx.save(); ctx.translate(ox, y + h + 28); ctx.scale(0.92, 0.92); CH[m.ch].d(1, 0); ctx.restore();
+  R(ox - 74, y + h - 36, 148, 26, 8, '#1c120c', { lw: 2, hl: 0, v: false, shade: false }); T(CH[m.ch].n, ox, y + h - 22, fit(CH[m.ch].n, 136, 14), '#ffe9b8', FD);
+  const bx = x + w * 0.73, by = y + h * 0.27, sp = [];
+  for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2, r = i % 2 ? 68 : 96; sp.push([bx + Math.cos(a) * r * 1.22, by + Math.sin(a) * r * 0.82]); }
+  PL(sp, '#ffe03a', { lw: 4, hl: 0.2, v: false, shade: false });
+  ctx.save(); ctx.translate(bx, by); ctx.rotate(-0.1); T(m.big, 0, 4, fit(m.big, 180, 40, FD), '#e8203a', FD, 'center', 7, '#ffffff'); ctx.restore();
+  const qx = x + w * 0.71, qy = y + h * 0.7, qw = 262, qh = 100, bp = RRp(qx - qw / 2, qy - qh / 2, qw, qh, 44), tp = new Path2D();
+  tp.moveTo(qx - qw / 2 + 30, qy - 16); tp.lineTo(ox + 62, y + h * 0.64); tp.lineTo(qx - qw / 2 + 34, qy + 14); tp.closePath();
+  ctx.lineWidth = 7; ctx.strokeStyle = OLC; ctx.lineJoin = 'round'; ctx.stroke(bp); ctx.stroke(tp); ctx.fillStyle = '#ffffff'; ctx.fill(bp); ctx.fill(tp);
+  ctx.font = '800 16px ' + FB; const nl = Math.min(3, Math.ceil(ctx.measureText(m.cap).width / (qw - 40))); wrapT(m.cap, qx, qy - (nl - 1) * 11 + 1, qw - 40, 16, '#1c120c', 22);
+  const nt = 'اليوم ' + ar(d) + ' • ' + AREAS[AREAS.reduce((a, r, i) => d >= r.from ? i : a, 0)].n; R(x + 12, y + 12, 210, 30, 4, '#fff7c8', { lw: 2.6, hl: 0, v: false, shade: false }); T(nt, x + 117, y + 28, fit(nt, 196, 14), '#3a1d0e', FD);
+  const br = 'عربية الرحمة 🛒' + (S.name ? ' • ' + S.name : ''); T(br, x + w - 110, y + h - 20, fit(br, 200, 15, FD), '#7a1010', FD, 'center', 5, '#ffffff');
+  ctx.restore(); ctx.lineWidth = 6; ctx.strokeStyle = OLC; ctx.stroke(fr);
+}
+function openSnap() {
+  G.snapOpen = 1; G.snapFile = null; sfx.tap();
+  try {
+    const c = document.createElement('canvas'); c.width = 1176; c.height = 736; const x2 = c.getContext('2d'); x2.scale(2, 2);
+    withCtx(x2, () => drawComic(4, 4, 580, 360, G.moment, G.dayDone || S.day)); G.snapC = c;
+    c.toBlob(b => { try { if (b) G.snapFile = new File([b], 'rahma-cart.png', { type: 'image/png' }); } catch (e) { } }, 'image/png');
+  } catch (e) { G.snapC = null; }
+}
+function drawSnap() {
+  BT = BT.filter(b => b.id === 'hud'); dim(0.75);
+  if (G.snapC) { ctx.save(); ctx.translate(480, 238); ctx.rotate(-0.015); ctx.drawImage(G.snapC, -294, -184, 588, 368); ctx.restore(); }
+  else drawComic(190, 58, 580, 360, G.moment, G.dayDone || S.day);
+  btn(0, 0, W, H, () => { G.snapOpen = 0; sfx.tap(); });
+  bigBtn(500, 440, 240, 56, '📤 شارك اللقطة', () => { UPFN = shareSnap; }, '#2e9d4a', 22);
+  bigBtn(220, 444, 200, 50, 'رجوع', () => { G.snapOpen = 0; }, '#8a5a3c', 20);
+}
+function shareSnap() {   // runs on pointerup, so phones count it as a tap and allow sharing
+  const f = G.snapFile, txt = '📸 لقطة من عربية الرحمة\n' + GAME_URL;
+  try { if (f && navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f], text: txt }).catch(() => { }); return; } } catch (e) { }
+  if (window.claude) { toast('صوّر الشاشة وابعتها لصحابك 📸'); return; }   // inside the Claude viewer pages can't save files
+  try { const a = document.createElement('a'); a.href = G.snapC.toDataURL('image/png'); a.download = 'rahma-cart.png'; document.body.appendChild(a); a.click(); a.remove(); toast('اتحفظت الصورة في الجهاز 📸', '#9be37a'); } catch (e) { toast('صوّر الشاشة وابعتها لصحابك 📸'); }
+}
 function drawWheel(t) {
   const w = G.whl, cx = 480, cy = 266, r = 158, sg = Math.PI / 4;
   dim(0.72); T('🎡 عجلة الحظ', 480, 46, 34, '#ffd23f', FD, 'center', 6, OLC); T('لفّة ببلاش كل يوم', 480, 80, 15, '#ffe9b8');
@@ -2444,6 +2550,14 @@ function drawRival(t) {
   });
 }
 // the day's weather: a hot sun behind the street, or rain in front of it
+function drawNight(t) {   // midnight: a dark street with a moon and stars; the cart's own lights stay warm
+  ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 0, CLIPX[1] - CLIPX[0], CT - 6); ctx.clip();
+  const g = ctx.createLinearGradient(0, 0, 0, CT); g.addColorStop(0, 'rgba(6,8,36,.74)'); g.addColorStop(1, 'rgba(24,14,52,.5)'); ctx.fillStyle = g; ctx.fillRect(CLIPX[0], 0, CLIPX[1] - CLIPX[0], CT);
+  for (let i = 0; i < 16; i++) { ctx.globalAlpha = 0.5 + 0.4 * Math.sin(t * 2 + i * 1.7); dot(CLIPX[0] + 20 + hash(i * 7.3) * (CLIPX[1] - CLIPX[0] - 40), 64 + hash(i * 3.1 + 1) * 120, 1.4 + (i % 3) * 0.5, '#fff8d0'); }
+  ctx.globalAlpha = 1; glow(372, 92, 64, '#fff3b0', 0.4);
+  ctx.save(); ctx.beginPath(); ctx.arc(372, 92, 19, 0, Math.PI * 2); ctx.clip(); ctx.beginPath(); ctx.rect(350, 70, 44, 44); ctx.arc(381, 86, 16, 0, Math.PI * 2); ctx.fillStyle = '#fff3c4'; ctx.fill('evenodd'); ctx.restore();
+  ctx.restore();
+}
 function drawHeat(t) {
   if (G.wx !== 'hot') return;
   ctx.save(); ctx.beginPath(); ctx.rect(CLIPX[0], 26, CLIPX[1] - CLIPX[0], CT - 32); ctx.clip();
@@ -2522,6 +2636,7 @@ function drawHUD(t) {
     if (!EN) [0.5, 0.75, 1].forEach(q => { const x = bx + 3 + (bw - 6) * q, got = gf >= q; star(x - (q === 1 ? 6 : 0), 31, 11, got ? '#ffd23f' : '#6b5a48', got ? '#a86a00' : OLC); });
     T(EN ? 'المستوى الجاي عند ' + ar(CHAL.goal) + ' ج' : 'الهدف ' + ar(tg) + ' ج', bx + bw / 2 - 30, 52, 12, '#fff3d6', FB, 'center', 3);
     if (G.rival) T('🛒 سكرتاعوط ' + ar(Math.round(G.rival.e)) + ' ج', bx + bw - 50, 52, 12, G.rival.e > G.earned - G.spent ? '#ff8a8a' : '#9be37a', FB, 'center', 3);
+    if (CHAL && CHAL.vs) T('🥊 ' + (CHAL.vs.n || 'صاحبك') + ' ' + ar(CHAL.vs.s) + ' ج', bx + bw - 50, 52, 12, CHAL.vs.s > G.earned - G.spent ? '#ff8a8a' : '#9be37a', FB, 'center', 3);
   }
   if (G.state === 'play' && G.ms && G.ms.length) {
     const dn = G.ms.filter(m => m.done).length, mp = RRp(642, 14, 74, 36, 12); ctx.fillStyle = 'rgba(28,18,12,.82)'; ctx.fill(mp);
@@ -2545,7 +2660,7 @@ function drawFX(t) {
   for (const p of G.parts) { const a = 1 - p.t / p.life; ctx.save(); ctx.globalAlpha = Math.min(1, a * 1.5); ctx.translate(p.x, p.y); ctx.rotate(p.r); if (p.kind === 'star') star(0, 0, p.s, p.c, 'rgba(0,0,0,.25)'); else if (p.kind === 'heart') heartFX(0, 0, p.s, p.c); else { ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); } ctx.restore(); }
   for (const c of G.coins || []) { if (c.t < 0) continue; const k = easeOut(clamp(c.t / c.d, 0, 1)); const x = lerp(c.x0, W - 126, k) + Math.sin(k * Math.PI) * 50, y = lerp(c.y0, 30, k) - Math.sin(k * Math.PI) * 80; coinIcon(x, y, 11 - k * 2); }
   for (const p of G.pops) { const k = pop(p.t, 0.3), a = p.t > p.life - 0.3 ? (p.life - p.t) / 0.3 : 1; ctx.save(); ctx.globalAlpha = a; ctx.translate(p.x, p.y - p.t * 40); ctx.scale(k, k); T(p.s, 0, 0, p.size, p.c, FD, 'center', p.size * 0.22); ctx.restore(); }
-  if (G.toast) { const a = Math.min(1, G.toast.t * 3); ctx.save(); ctx.globalAlpha = a; const w = Math.min(520, 60 + G.toast.s.length * 11); const p = RRp(480 - w / 2, 252, w, 40, 20); ctx.fillStyle = 'rgba(28,18,12,.9)'; ctx.fill(p); T(G.toast.s, 480, 273, fit(G.toast.s, w - 20, 17), G.toast.c); ctx.restore(); }
+  if (G.toast) { const a = Math.min(1, G.toast.t * 3), ts = G.toast.s, sp = ts.length > 50 ? ts.indexOf(' ', Math.floor(ts.length / 2) - 3) : -1, ls = sp > 0 ? [ts.slice(0, sp), ts.slice(sp + 1)] : [ts], th = 14 + ls.length * 26; ctx.save(); ctx.globalAlpha = a; const w = Math.min(540, 60 + Math.max(...ls.map(l => l.length)) * 11); const p = RRp(480 - w / 2, 272 - th / 2, w, th, 20); ctx.fillStyle = 'rgba(28,18,12,.9)'; ctx.fill(p); ls.forEach((l, i) => T(l, 480, 273 + (i - (ls.length - 1) / 2) * 26, fit(l, w - 20, 17), G.toast.c)); ctx.restore(); }
   if (G.flash > 0) { ctx.save(); ctx.globalAlpha = G.flash * 0.9; ctx.fillStyle = G.flashC; ctx.globalCompositeOperation = 'lighter'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
 }
 function drawTut(t) {
@@ -2612,6 +2727,7 @@ function drawTitle(t) {
   bigBtn(320, 434, 160, 50, 'المستوى: ' + (S.diff ? DIFFS[S.diff].n : '؟'), () => { G.state = 'diff'; }, '#2e7fb8', 18);
   bigBtn(200, 434, 110, 50, 'طريقة اللعب', () => { S.tut = 0; saved = null; if (!S.diff) G.state = 'diff'; else newDay(); }, '#8a5a3c', 15);
   if (cont) T('ابدأ من الأول', 480, 506, 13, '#9a6a4a'); if (cont) btn(420, 496, 120, 22, () => { const t0 = S.tut, d = S.diff; S = fresh(); S.tut = t0; S.diff = d; saved = null; save(); dispMoney = 0; sfx.tap(); });
+  if (VS && !CHAL) { const vt = '🥊 ' + (VS.n || 'صاحبك') + ' عمل ' + ar(VS.s) + ' ج في التحدي! تقدر تغلبه؟', p = RRp(290, 266, 380, 42, 14); ctx.fillStyle = '#c62828'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = OLC; ctx.stroke(p); T(vt, 480, 288, fit(vt, 360, 16, FD), '#fff', FD, 'center', 4, '#5a1010'); btn(290, 266, 380, 42, () => { sfx.tap(); startChallenge(VS.key); }); }
 }
 function drawDiff(t) {
   dim(0.75); panel(120, 60, 720, 420);
@@ -2644,6 +2760,8 @@ function drawIntro() {
   if (G.sea === 'eid') notes.push('🎉 العيد: الكحك والكنافة عند أبو حسيبة، والبقشيش الضعف');
   if (G.rival) notes.push('🛒 سكرتاعوط فاتح عربية قصادك! اللي يستنى كتير هيروحله');
   if (G.wx) notes.push(G.wx === 'hot' ? '☀️ يوم حر: الناس عايزة ساقع وتلج' : '🌧 يوم مطر: الشاي بيكسّر');
+  if (G.night) notes.push('🌙 سهرة لنص الليل: زباين غريبة بتدفع كتير، وطلباتها عند أبو حسيبة');
+  if (G.qst) notes.push('📜 فيه حكاية مستنياك النهارده');
   if (G.noteR) notes.push('📒 النوتة: ' + [G.noteR.n ? ar(G.noteR.n) + ' دفعوا الضعف +' + ar(G.noteR.paid) + ' ج' : '', G.noteR.gone ? ar(G.noteR.gone) + ' هربوا 😒' : ''].filter(Boolean).join(' و'));
   if (!CHAL && S.day > 2 && S.rate >= 4.5 && notes.length < 2) notes.push('⭐ ريفيوهاتك حلوة: زباين أكتر النهارده');
   if (notes.length) { const nt = notes.join('   •   '); T(nt, 480, 150, fit(nt, 610, 15, FD), G.legend ? '#5b3cc4' : '#8a3a1a', FD); }
@@ -2663,6 +2781,7 @@ function drawIntro() {
     T('نفس الزباين لكل اللاعيبة النهارده', 480, 268, 18, '#2e7d32', FD);
     T('اعمل أعلى صافي في يوم واحد، وابعت السكور لصحابك يحاولوا يغلبوك', 480, 298, fit('اعمل أعلى صافي في يوم واحد، وابعت السكور لصحابك يحاولوا يغلبوك', 560, 15), '#3a1d0e');
     const b = REAL.chBest && REAL.chBest.d === CHAL.key ? REAL.chBest.s : 0; if (b) T('أحسن سكور ليك النهارده: ' + ar(b) + ' ج', 480, 334, 16, '#e08a1e', FD);
+    if (CHAL.vs) T('🥊 هدفك تغلب ' + (CHAL.vs.n || 'صاحبك') + ': ' + ar(CHAL.vs.s) + ' ج', 480, 362, 17, '#c62828', FD);
   } else {
     T('🎯 مهمات النهارده', 480, 252, 17, '#2e7d32', FD);
     G.ms.forEach((m, i) => { const y = 278 + i * 27; ctx.fillStyle = '#ffffff'; ctx.fill(RRp(250, y - 11, 460, 23, 10)); T(mText(m), 540, y + 1, fit(mText(m), 330, 14), '#3a1d0e'); R(262, y - 9, 78, 19, 9, '#2e9d4a', { lw: 1.6, hl: 0, v: false }); T('+' + ar(m.r) + ' ج', 301, y + 1, 12, '#fff'); });
@@ -2807,7 +2926,9 @@ function drawEnd() {
   bigBtn(490, y + h - 84, 260, 60, ok ? 'اليوم ' + ar(S.day) : 'جرّب تاني', () => newDay(), '#e8304a', 24);
   bigBtn(210, y + h - 80, 240, 54, '🛒 السوق', () => { G.state = 'shop'; G.shopFrom = 'end'; G.shopTab = 'menu'; }, deals ? '#2e7fb8' : '#6a8aa8', 22);
   if (G.posts && G.posts.length) { const p = RRp(172, 44, 150, 52, 12); ctx.fillStyle = '#3b5998'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📱 الريفيوهات', 247, 61, 15, '#fff', FD); T('⭐ ' + ar(G.rate) + ' من ٥', 247, 83, 13, '#ffe38a'); btn(172, 44, 150, 52, () => { G.revOpen = 1; sfx.tap(); }); }
+  if (G.moment) { const p = RRp(638, 44, 150, 52, 12); ctx.fillStyle = '#ff8a2a'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📸 لقطة اليوم', 713, 61, 15, '#fff', FD, 'center', 4, '#7a2a00'); T(G.moment.big, 713, 83, fit(G.moment.big, 136, 13), '#fff3d6'); btn(638, 44, 150, 52, openSnap); }
   if (G.revOpen) drawReviews();
+  if (G.snapOpen) drawSnap();
 }
 function drawPause() {
   dim(0.75); panel(CHAL ? 300 : 210, 80, 360, 380);
@@ -2876,7 +2997,7 @@ function drawAlbum(t) {
     const col = i % 6, row = Math.floor(i / 6), cx = 800 - col * 128, y = 70 + row * 140, on = !!S.album[ch], n = S.served[ch] || 0, need = albNeed(ch), gold = on && n >= need * 4;
     const p = RRp(cx - 59, y, 118, 132, 12); ctx.fillStyle = on ? '#ffffff' : '#ece0c8'; ctx.fill(p); ctx.lineWidth = gold ? 4 : 2.5; ctx.strokeStyle = gold ? '#d4a017' : on ? '#b79bff' : '#c8b898'; ctx.stroke(p);
     ctx.save(); ctx.beginPath(); ctx.rect(cx - 56, y + 3, 112, 86); ctx.clip(); if (on) glow(cx, y + 50, 50, CH[ch].vip ? '#ffd86b' : '#fff1a0', 0.6); albPortrait(ch, cx, y + 138, 0.5, on); ctx.restore();
-    T(on ? CH[ch].n : '؟؟؟', cx, y + 100, fit(on ? CH[ch].n : '؟؟؟', 108, 13), '#3a1d0e', FD);
+    T(on ? CH[ch].n : '؟؟؟', cx, y + 100, fit(on ? CH[ch].n : '؟؟؟', 108, 13), '#3a1d0e', FD); if (S.quest[ch]) T('📜', cx - 44, y + 16, 15, '#000');
     if (on && !CH[ch].vip && !CH[ch].rare) { const fl = frLv(ch); for (let q = 0; q < 3; q++) { const hp = heartP(cx - 22 + q * 16, y + 116, 6); ctx.fillStyle = q < fl ? '#ff4f7a' : '#e0d2b8'; ctx.fill(hp); ctx.lineWidth = 1.4; ctx.strokeStyle = OLC; ctx.stroke(hp); } }
     else { ctx.fillStyle = '#e0d2b8'; ctx.fill(RRp(cx - 44, y + 112, 88, 10, 5)); const f = Math.min(1, n / need); if (f > 0) { ctx.fillStyle = on ? '#8a4ad8' : '#ff8a3d'; ctx.fill(RRp(cx - 44, y + 112, 88 * f, 10, 5)); } }
     T(on ? '🔊' : ar(Math.min(n, need)) + '/' + ar(need), cx + 50, y + 117, 10, '#7a4a2a');
@@ -2889,8 +3010,9 @@ function drawAlbum(t) {
     const ch = G.albSel; BT = BT.filter(b => b.id === 'hud'); dim(0.6); panel(250, 60, 460, 420);
     ctx.save(); ctx.beginPath(); ctx.rect(262, 72, 436, 260); ctx.clip(); glow(480, 200, 160, CH[ch].vip ? '#ffd86b' : '#fff1a0', 0.6); albPortrait(ch, 480, 330, 0.8, true); ctx.restore();
     T(CH[ch].n, 480, 350, 26, '#d7263d', FD);
-    wrapT('"' + JOKE[ch] + '"', 480, 384, 380, 17, '#3a1d0e', 24);
-    T('خدمته ' + ar(S.served[ch] || 0) + ' مرة' + (CH[ch].vip || CH[ch].rare ? '' : '   •   ❤️ ' + FRN[frLv(ch)]), 480, 436, 13, '#7a4a2a');
+    const qd = S.quest[ch] && QST[ch]; wrapT('"' + JOKE[ch] + '"', 480, qd ? 378 : 384, 380, 17, '#3a1d0e', 24);
+    if (qd) wrapT('📜 ' + qd[1], 405, 414, 290, 13, '#8a5a1a', 18);
+    const sv = 'خدمته ' + ar(S.served[ch] || 0) + ' مرة' + (CH[ch].vip || CH[ch].rare ? '' : '   •   ❤️ ' + FRN[frLv(ch)]); T(sv, 405, qd ? 458 : 436, fit(sv, 290, 13), '#7a4a2a');
     btn(0, 0, W, H, () => { G.albSel = null; sfx.tap(); });
     bigBtn(560, 410, 120, 44, '🔊 اسمع', () => { sfx.talk(CH[ch].f); speak(JOKE[ch], CH[ch].vp); }, '#2e7fb8', 16);
   }
@@ -2959,12 +3081,13 @@ function drawChalEnd() {
   T(EN ? 'وصلت لمستوى ' + ar(CHAL.lvl) + '   •   ' + AREAS[CHAL.area].n : ar(CHAL.key) + '   •   ' + AREAS[CHAL.area].n, 480, y + 56, EN ? 16 : 14, '#7a4a2a', EN ? FD : FB);
   T(ar(Math.round(G.chScore * clamp(G.endT / 0.9, 0, 1))) + ' ج', 480, y + 112, 56, '#3a1d0e', FD);
   const rec = G.chScore > G.chPrev;
-  T(EN ? (rec ? '🎉 رقم قياسي جديد!' : 'أحسن سكور ليك: ' + ar(G.chPrev) + ' ج') : rec ? (G.chPrev ? '🎉 رقم قياسي جديد ليك النهارده!' : 'أول محاولة ليك النهارده') : 'أحسن سكور ليك النهارده: ' + ar(G.chPrev) + ' ج', 480, y + 164, 17, rec ? '#2e7d32' : '#7a4a2a');
+  if (CHAL.vs && !EN) { const vs = CHAL.vs, vn = vs.n || 'صاحبك', w = G.chScore > vs.s; T(w ? '🎉 غلبت ' + vn + '! هو عمل ' + ar(vs.s) + ' ج' : G.chScore === vs.s ? '🤝 اتعادلت مع ' + vn : '😅 ' + vn + ' غلبك، هو عمل ' + ar(vs.s) + ' ج', 480, y + 164, 18, w ? '#2e7d32' : '#c62828', FD); }
+  else T(EN ? (rec ? '🎉 رقم قياسي جديد!' : 'أحسن سكور ليك: ' + ar(G.chPrev) + ' ج') : rec ? (G.chPrev ? '🎉 رقم قياسي جديد ليك النهارده!' : 'أول محاولة ليك النهارده') : 'أحسن سكور ليك النهارده: ' + ar(G.chPrev) + ' ج', 480, y + 164, 17, rec ? '#2e7d32' : '#7a4a2a');
   [['مبسوطين', G.happy, '#2e9d4a'], ['تحفة', G.perfect, '#d4a017'], ['أعلى كومبو', G.bestCombo, '#ff6a2a'], ['زعلانين', G.angry, '#c62828']].forEach(([n, v, c], i) => { const x = 660 - i * 120, p = RRp(x - 52, y + 190, 104, 50, 12); ctx.fillStyle = '#fff'; ctx.fill(p); T(ar(v), x, y + 208, 20, c, FD); T(n, x, y + 228, 12, '#7a4a2a'); });
   T(EN ? 'ابعت السكور لصحابك وشوف مين يوصل لمستوى أعلى!' : 'ابعت السكور لصحابك وشوف مين يغلب! بكرة فيه تحدي جديد', 480, y + 270, 15, '#2e7fb8');
   ctx.restore();
-  bigBtn(500, y + 300, 250, 58, '📤 ابعت لصحابك', shareScore, '#2e9d4a', 22);
-  bigBtn(210, y + 304, 250, 52, '🔁 العب تاني', () => { exitChallenge(); EN ? startEndless() : startChallenge(); }, '#e08a1e', 20);
+  bigBtn(500, y + 300, 250, 58, '📤 ابعت لصحابك', () => { UPFN = shareScore; }, '#2e9d4a', 22);
+  bigBtn(210, y + 304, 250, 52, '🔁 العب تاني', () => { const vk = CHAL.vs ? CHAL.key : null; exitChallenge(); EN ? startEndless() : startChallenge(vk); }, '#e08a1e', 20);
   bigBtn(380, y + 384, 200, 50, 'رجوع', exitChallenge, '#8a5a3c', 20);
 }
 // each station is cached and only redrawn when what it shows changes (or at a low rate while it animates)
@@ -3005,7 +3128,7 @@ function frame(now) {
     ctx.setTransform(SC * DPR, 0, 0, SC * DPR, ox * SC * DPR, oy * SC * DPR);
     if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes' || G.state === 'wheel') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } if (G.state === 'wheel') { BT = BT.filter(b => b.id === 'hud'); drawWheel(G.t); } drawHUD(G.t); drawFX(G.t); }
     else {
-      drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
+      if (G.night) drawNight(G.t); drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
       if (G.state === 'play') { drawCustomers(G.t); if (G.raid) drawRaid(G.t); }
       drawRain(G.t); drawLights(G.t); drawSeason(G.t);   // under the order bubbles
       drawAHSeat(G.t);
