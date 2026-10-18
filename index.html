@@ -602,6 +602,10 @@ const PROD = {
   kun: { n: 'كنافة الهصلاص', price: 9, ch: 'has', sea: 1 },
   qat: { n: 'قطايف الأبخنوس', price: 7, ch: 'abkh', sea: 1 },
   kahk: { n: 'كحك البرنس', price: 8, ch: 'prince', sea: 1 },
+  mixWrap: { n: 'ميكس عباس البروتين', price: 13, ch: 'abbas', rec: ['hankSand'] },
+  friesWrap: { n: 'شاورما فلوبا الفرنساوي', price: 12, ch: 'floba', rec: ['jabFries'] },
+  iceSand: { n: 'ساندوتش شمقمق الساقع', price: 10, ch: 'shamq', rec: ['shawqyIce'] },
+  falSand: { n: 'عيش الدولازليق بالفلافل', price: 12, ch: 'dola', rec: ['sakrFal'] },
   cig: { n: 'سجاير', price: 6, rare: 1 },
   nut: { n: 'نوتيلا', price: 9, rare: 1 },
   wbr: { n: 'عيش حبة كاملة', price: 5, rare: 1 },
@@ -626,6 +630,11 @@ function decoIn(lvl, y) {
   if (lvl < 1) return false;
   if (DECO < 1) { const k = Math.max(0.001, easeBack(DECO)); ctx.save(); ctx.translate(0, y); ctx.scale(k, k); ctx.translate(0, -y); decoOpen = true; }
   return true;
+}
+function wrapBody(sk, pc, sc) {   // a tortilla cone in a striped paper sleeve, shared by the wrap recipes
+  const wr = new Path2D(); wr.moveTo(-21, -60); wr.quadraticCurveTo(0, -52, 21, -60); wr.lineTo(17, -4); wr.quadraticCurveTo(0, 4, -17, -4); wr.closePath(); ink(wr, sk, { b: [0, -34, 32], lw: 2.8 });
+  const pp = new Path2D(); pp.moveTo(-19.2, -30); pp.quadraticCurveTo(0, -24, 19.2, -30); pp.lineTo(17, -4); pp.quadraticCurveTo(0, 4, -17, -4); pp.closePath(); ink(pp, pc, { b: [0, -16, 22], lw: 2.4 });
+  ctx.save(); ctx.clip(pp); ctx.fillStyle = sc; ctx.fillRect(-22, -15, 44, 3); ctx.fillRect(-22, -9, 44, 2); ctx.restore();
 }
 const PDRAW = {
   hafoWrap(t) {   // wrap with the goblin's face and lettuce ears
@@ -765,6 +774,39 @@ const PDRAW = {
     dot(0, -36, 1.8, '#d32f2f');
     peye(-8, -16, 3, { iris: '#3a2416', lid: 0.3, skin: '#f0dcb0' }); peye(8, -16, 3, { iris: '#3a2416', lid: 0.3, skin: '#f0dcb0' });
     Q(-4, -8, 0, -5, 4, -8, 1.6, OLC);
+  },
+  mixWrap(t) {   // Abbas's double-protein wrap: chicken and green falafel, flexing two little arms
+    for (let i = 0; i < 3; i++) R(-14 + i * 9, -71 + (i % 2) * 3, 7, 11, 2, i % 2 ? '#d08a44' : '#9a4e1e', { lw: 1.2 });
+    for (let i = 0; i < 3; i++) E(-10 + i * 10, -63 - (i % 2) * 5, 5.5, 5, '#5f8f2a', { lw: 1.4, seed: i });
+    for (const s of [-1, 1]) { const f = Math.sin(t * 4) * 0.12; ctx.save(); ctx.translate(s * 18, -26); ctx.rotate(s * (0.2 + f)); B([[0, 4], [s * 12, 2], [s * 18, -10], [s * 14, -20], [s * 8, -16], [s * 9, -6], [0, -4]], '#e9b07a', { lw: 2 }); ctx.restore(); }
+    wrapBody('#eac27e', '#fbf8f0', '#2e9d4a');
+    peye(-7, -46, 4.4, { iris: '#3a2416', lid: 0.5, skin: '#eac27e' }); peye(7, -46, 4.4, { iris: '#3a2416', lid: 0.5, skin: '#eac27e' });
+    L([[-12, -53], [-3, -51]], 2.4); L([[12, -53], [3, -51]], 2.4); pgrin(0, -38, 9, 3, 0);
+  },
+  friesWrap(t) {   // Floba's French wrap: fries sticking out of the top, a beret and a curly moustache
+    for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(-14 + i * 5.6, -58); ctx.rotate(-0.25 + i * 0.1); R(-2.5, -22 + (i % 2) * 5, 5.5, 26, 2, '#f6c84a', { lw: 1.5 }); ctx.restore(); }
+    wrapBody('#eac27e', '#fbf8f0', '#2e6ab8');
+    ctx.save(); ctx.translate(5, -80); ctx.rotate(0.25); E(0, 0, 15, 6, '#26262e', { lw: 2 }); dot(0, -6, 2.6, '#26262e'); ctx.restore();
+    peye(-7, -47, 4.2, { iris: '#2e6ab8', lid: 0.3, skin: '#eac27e' }); peye(7, -47, 4.2, { iris: '#2e6ab8', lid: 0.3, skin: '#eac27e' });
+    Q(0, -38, -7, -42, -13, -37, 2.4); Q(0, -38, 7, -42, 13, -37, 2.4); Q(-4, -33, 0, -30, 4, -33, 1.6);
+  },
+  iceSand(t) {   // Shamq's cold sandwich: ice cream scoops squeezed in a bun, dripping a little
+    E(0, -6, 27, 8, '#d9a15a', { lw: 2.4 });
+    for (let i = 0; i < 3; i++) E(-17 + i * 17, -16, 11, 8, i === 1 ? '#ffb3c8' : '#fbfaf6', { lw: 2, seed: i });
+    for (let i = 0; i < 2; i++) R(-12 + i * 22, -12, 4.5, 10 + i * 3, 2, i ? '#ffb3c8' : '#fbfaf6', { lw: 1.4, hl: 0 });
+    const top = new Path2D(); top.moveTo(-27, -22); top.bezierCurveTo(-28, -54, 28, -54, 27, -22); top.quadraticCurveTo(0, -26, -27, -22); top.closePath(); ink(top, '#e0a85a', { b: [0, -34, 26], lw: 2.6 });
+    for (let i = 0; i < 6; i++) E(-14 + i * 6, -44 + (i % 2) * 4, 1.6, 1, '#fff6d8', { ol: false, shade: false });
+    peye(-8, -35, 3.8, { iris: '#3a2416', lid: 0.15, skin: '#e0a85a' }); peye(8, -35, 3.8, { iris: '#3a2416', lid: 0.15, skin: '#e0a85a' });
+    pgrin(0, -29, 7, 2.4, 1);
+  },
+  falSand(t) {   // the Dolazleeq's pita: a pocket of Sakrtah falafel with two flapping wings
+    for (const s of [-1, 1]) { const fl = Math.sin(t * 9) * 0.25; ctx.save(); ctx.translate(s * 22, -24); ctx.rotate(s * (-0.4 + fl)); B([[0, 0], [s * 14, -14], [s * 26, -16], [s * 22, -6], [s * 12, 2]], '#f4f2ec', { lw: 1.8 }); L([[s * 6, -3], [s * 20, -11]], 1, '#9aa4ac'); ctx.restore(); }
+    for (let i = 0; i < 4; i++) E(-15 + i * 10, -38 - (i % 2) * 4, 7, 6.5, '#8f7b58', { lw: 1.8, seed: i });
+    E(-6, -35, 4, 2.5, '#8cc63f', { lw: 1 }); E(8, -36, 4, 2.4, '#e85a3a', { lw: 1 });
+    const p = new Path2D(); p.moveTo(-24, -34); p.quadraticCurveTo(0, -28, 24, -34); p.bezierCurveTo(28, 2, -28, 2, -24, -34); p.closePath(); ink(p, '#e9c58a', { b: [0, -16, 26], lw: 2.6 });
+    for (let i = 0; i < 8; i++) dot(-16 + hash(i + 3) * 32, -24 + hash(i + 6) * 18, 1.1, '#b8844a');
+    peye(-8, -20, 3.6, { iris: '#3a2416', lid: 0.2, skin: '#e9c58a' }); peye(8, -20, 3.6, { iris: '#3a2416', lid: 0.2, skin: '#e9c58a' });
+    Q(-5, -11, 0, -7, 5, -11, 1.8);
   },
   cig(t) {
     for (let i = 0; i < 3; i++) { R(-9 + i * 6.5, -62 + (i % 2) * 3, 5, 16, 1.5, '#f8f6f0', { lw: 1.4, hl: 0 }); R(-9 + i * 6.5, -62 + (i % 2) * 3, 5, 5, 1.5, '#e8a050', { lw: 1.4, hl: 0 }); }
@@ -939,7 +981,7 @@ function speak(text, pitch) { if (!voiceOn || sfxV <= 0 || !arVoice) return; try
 const KEY = 'rahma-cart-v4';
 const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store: 0, ah: 0 }, menu: {}, help: {}, tapes: { rahma: 1 }, tape: 'rahma', tut: 0, stars: {}, best: 0, diff: null, seenDiaa: 0,
   extras: {}, served: {}, album: {}, cos: { aw: 'red', lights: 0, neon: 0, gold: 0 }, cosOwn: { red: 1 }, name: '', story: 0, fin: 0, life: 0, chBest: null, meal: 0, rivalW: 0,
-  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0 }, ach: {}, title: '', endBest: 0 });
+  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0 });
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
@@ -970,11 +1012,11 @@ const HELP = [
 ];
 const DAYLEN = 90, RESTOCK = 2;
 const target = d => d <= 6 ? 30 + d * 22 : 162 + (d - 6) * 15;   // grows slower late, so later days don't pile up
-const has = p => BASE.includes(p) || !!S.menu[p] || !!(PROD[p] && PROD[p].sea && G.sea && SEAS[G.sea].src.includes(p));
+const has = p => BASE.includes(p) || !!S.menu[p] || !!(PROD[p] && PROD[p].rec && S.rec[p]) || !!(PROD[p] && PROD[p].sea && G.sea && SEAS[G.sea].src.includes(p));
 const owned = () => Object.keys(PROD).filter(p => !PROD[p].rare && has(p));
 function patienceFor(n) {
   const d = S.day, base = S.diff === 'easy' ? Infinity : S.diff === 'hard' ? Math.max(18, 34 - d * 1.5) : Math.max(40, 70 - d * 2.5);
-  return base * (1 + 0.15 * S.up.pat) * (1 + 0.35 * (n - 1));
+  return base * (1 + 0.15 * S.up.pat) * (1 + 0.35 * (n - 1)) * (S.grow ? 1.1 : 1);
 }
 const dur = base => base * (1 - 0.12 * S.up.speed);
 
@@ -1032,6 +1074,7 @@ const TRAITS = {
   picky: { i: '😒', n: 'رخم' },
   rich: { i: '💰', n: 'كريم', say: 'خد راحتك يا باشا 💰' },
   thief: { i: '🕶', n: 'نصاب' },
+  haggle: { i: '🤝', n: 'بيفاصل' },
 };
 // combo meals: a sandwich, a side and a drink in one bag, paid 25% more
 const MEAL = { main: ['hafoWrap', 'hankSand'], side: ['jabFries', 'sakrFal', 'shawqyIce'], drink: ['aaoJuice', 'halaq', 'zarbSmoothie', 'aaotaMilk', 'zoolTea'] };
@@ -1047,6 +1090,64 @@ const SEAS = { ram: { n: 'رمضان', src: ['kun', 'qat'] }, eid: { n: 'الع�
 const kioskKeys = () => G.sea ? SEAS[G.sea].src : ['cig', 'nut', 'wbr'];
 const ownOf = ch => { if (G.sea) for (const p of SEAS[G.sea].src) if (PROD[p].ch === ch) return p; return OWN[ch]; };
 const COLD = ['aaoJuice', 'halaq', 'zarbSmoothie', 'aaotaMilk', 'shawqyIce'];
+
+// secret recipes: mixing what you already sell on the board; a found one joins the menu and the recipe book
+const REC = {
+  mixWrap: { hint: 'عباس عايز بروتين دبل: حشوتين في نفس العيشة', how: 'عيش + فراخ + فلافل خضرا، وبعدين لف' },
+  friesWrap: { hint: 'فلوبا بيحب البطاطس جوه الشاورما مش جنبها', how: 'عيش + فراخ + اسحب البطاطس على اللوح، وبعدين لف' },
+  iceSand: { hint: 'شمقمق بيحط الآيس كريم في العيش على طول', how: 'عيش + اسحب الآيس كريم على اللوح، وبعدين لف' },
+  falSand: { hint: 'الدولازليق بياكل فلافل السكرتح جوه عيشة', how: 'عيش + اسحب فلافل السكرتح على اللوح، وبعدين لف' },
+};
+const recOk = p => PROD[p].rec.every(q => has(q));
+const recipeOf = b => b.fill === 'ice' ? 'iceSand' : b.fill === 'fal' ? 'falSand' : b.mix === 'mix' ? 'mixWrap' : b.mix === 'fries' ? 'friesWrap' : b.fill === 'chicken' ? 'hafoWrap' : 'hankSand';
+function boardAdd(key) {   // fries onto a chicken wrap, or falafel / ice cream straight into the bread
+  const b = G.board, p = prodOf(key); if (G.tut || !p || pex(p)) return false;
+  if (p === 'jabFries' && b.st === 'filled' && b.fill === 'chicken' && !b.mix) b.mix = 'fries';
+  else if ((p === 'sakrFal' || p === 'shawqyIce') && b.st === 'bread') { b.st = 'filled'; b.fill = p === 'sakrFal' ? 'fal' : 'ice'; }
+  else return false;
+  takeItem(key); G.sel = null; sfx.pop(2); burst(235, 470, 8, ['#ffd23f', '#ffffff'], 'conf', 0.4); return true;
+}
+function discover(k) {
+  S.rec[k] = 1; save(); sfx.fanfare(); G.flash = 0.3; G.flashC = '#ffd23f'; burst(235, 440, 30, ['#ffd23f', '#ff8ae8', '#ffffff'], 'star', 1);
+  addPop(480, 200, '🔓 وصفة سرية: ' + PROD[k].n, '#ffe38a', 30, 2.6); toast('📒 اتسجلت في كتاب الوصفات ودخلت المنيو، و' + CH[PROD[k].ch].n + ' بيدفع فيها الضعف', '#ffe38a');
+}
+// regulars: every happy visit adds friendship; friends wait longer, tip more, and bring a gift at each new level
+const FRL = [6, 18, 40], FRN = ['لسه جديد', 'زبون دايم', 'صاحبك', 'أعز أصحابك'];
+const frLv = ch => { const p = (S.fr && S.fr[ch]) || 0; return p >= FRL[2] ? 3 : p >= FRL[1] ? 2 : p >= FRL[0] ? 1 : 0; };
+function befriend(c, sx) {
+  if (CH[c.ch].vip || CH[c.ch].rare || CH[c.ch].dlv || c.legend) return;
+  const l0 = frLv(c.ch); S.fr[c.ch] = (S.fr[c.ch] || 0) + 1 + (c.hagOk ? 1 : 0);
+  const l1 = frLv(c.ch); if (l1 <= l0) return;
+  const g = [0, 30, 60, 120][l1]; S.money += g; S.life += g;
+  addPop(sx, 262, '❤️ هدية +' + ar(g) + ' ج', '#ffb3d0', 22, 1.8); toast('❤️ ' + CH[c.ch].n + ' بقى ' + FRN[l1] + '! جابلك هدية ' + ar(g) + ' ج', '#ffd0ea');
+  sfx.vip(); burst(sx, 160, 16, ['#ff8ae8', '#ffffff'], 'heart', 0.8);
+}
+// haggling: half price for a happy, patient customer, or full price and a grumpy one
+function hagAnswer(c, yes) {
+  c.hag = 0; c.sayT = 1.6; sfx.talk(CH[c.ch].f);
+  if (yes) { c.disc = 0.6; c.hagOk = 1; c.pat = c.max; c.say = 'حبيبي يا معلم! 😍'; sfx.combo(3); burst(SLOTX[c.slot], 120, 10, ['#ff8ae8', '#ffffff'], 'heart', 0.6); }
+  else { if (isFinite(c.max)) c.pat = Math.max(2, c.pat - c.max * 0.3); c.shake = 0.5; c.say = 'ماشي يا عم البخيل 😤'; }
+}
+const HAGB = [[-40, 1], [12, 0]];
+function hagAt(x, y) { for (const c of G.slots) if (c && c.hag === 1 && c.st === 'wait') for (const [dx, yes] of HAGB) if (Math.hypot(x - SLOTX[c.slot] - dx, y - 110) < 26) return [c, yes]; return null; }
+// wholesale market: each day one ingredient gets pricey and another cheap; crates bought ahead refill for free
+const MKG = ['bread', 'spit', 'gfal', 'gtray', 'fryer', 'kettle', 'tap', 'freezer'], WH_MAX = 10, CRATE = 5;
+const mkGrp = k => k.startsWith('tap') ? 'tap' : k;
+const grpName = g => g === 'tap' ? 'المشاريب' : STOCKN[g];
+const grpOn = g => g === 'tap' ? [0, 1, 2, 3].some(i => stationVisible('tap' + i)) : stationOn(g);
+function mkFor(d) {   // fixed for each day number, so the shop and the day agree
+  if (d < 3 || CHAL) return {};
+  const hi = MKG[Math.floor(hash(d * 7.31) * MKG.length)]; let lo = MKG[Math.floor(hash(d * 3.17 + 1) * MKG.length)]; if (lo === hi) lo = MKG[(MKG.indexOf(hi) + 3) % MKG.length];
+  return { [hi]: 6 + Math.floor(d / 2), [lo]: 1 };
+}
+const mkPrice = g => (G.mk && G.mk[g]) ?? RESTOCK;
+// the cart grows: a kiosk (a wider vitrine, more patience), then a shop (new front, higher prices)
+const GROW = [{ n: 'العربية تبقى كشك', d: 'فاترينة أوسع والزباين بتصبر +١٠٪', c: 1200 }, { n: 'الكشك يبقى محل', d: 'واجهة جديدة والأسعار +١٥٪', c: 3000 }];
+function setHolds() {
+  HOLDS.length = 2; delete SLOT.hold2;
+  if (S.grow) { HOLDS.push('hold2'); SLOT.hold0 = [945, 404]; SLOT.hold1 = [921, 404]; SLOT.hold2 = [897, 404]; SLOTS_S.hold2 = 0.5; }
+  else { SLOT.hold0 = [939, 404]; SLOT.hold1 = [903, 404]; }
+}
 // daily missions
 function mkMissions() {
   const d = S.day, r = 12 + d * 3, pool = [
@@ -1086,7 +1187,7 @@ function served(ch, x, y) {
 // cart cosmetics
 const AWN = { red: { n: 'تندة حمرا', c: ['#d7263d', '#fff6ec'], cost: 0 }, green: { n: 'تندة خضرا', c: ['#2e9d4a', '#fff6ec'], cost: 80 }, blue: { n: 'تندة زرقا', c: ['#2e6ab8', '#ffe9b8'], cost: 80 }, cosmic: { n: 'تندة كونية', c: ['#5b3cc4', '#ffd86b'], cost: 150 } };
 const awCols = () => S.cos.gold ? ['#c9961a', '#2a1a0a'] : (AWN[S.cos.aw] || AWN.red).c;
-const bgKey = () => areaI() + S.cos.aw + S.cos.gold + (S.cos.neon ? S.name : '') + S.title;
+const bgKey = () => areaI() + S.cos.aw + S.cos.gold + (S.cos.neon ? S.name : '') + S.title + '|' + S.grow;
 // Abu Hasiba's debt story: a short scene when the cart moves, and a finale when it's paid off
 const DEBT = 3000;
 const STORY = [
@@ -1190,6 +1291,7 @@ function newDay() {
   const legend = !CHAL && S.day % 7 === 0, sea = !CHAL && !legend ? seasonOf(S.day) : null;
   const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0, wx = !legend && !sea && S.day >= 2 && grand() < 0.4 ? gpick(['hot', 'rain']) : null;
   if (sea) SEAS[sea].src.forEach((k, i) => SRC[k].x = 897 + i * 33);
+  setHolds();
   G = { state: 'intro', t: G.t, time: DAYLEN, dayT: 0, slots: [null, null, null, null], spawnT: 1.2, earned: 0, spent: 0, happy: 0, angry: 0, perfect: 0,
     combo: 0, bestCombo: 0, comboT: 0, parts: [], pops: [], coins: [], toast: null, bird: null, walkers: G.walkers || [], walkT: 1,
     birdAt: (S.diff === 'hard' && S.day >= 2) || (S.diff === 'med' && S.day >= 3) ? grnd(25, 60) : -1,
@@ -1202,7 +1304,7 @@ function newDay() {
     ev: S.day >= 3 && !legend && sea !== 'ram' && grand() < 0.55 ? { k: gpick(S.day >= 4 ? ['power', 'match', 'raid'] : ['power', 'match']), at: grnd(22, 50), on: 0 } : null,
     cnt: {}, favN: 0, exN: 0, caught: 0, bonus: 0, ms: [], storyQ: null, storyL: 0, storyT: 0,
     sea, wx, rival: rival ? { e: 0 } : null, iftar: sea === 'ram' ? { at: 40, on: 0 } : null, iftarT: 0, meals: 0,
-    dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [] };
+    mk: mkFor(S.day), dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [] };
   if (!CHAL) { G.ms = mkMissions(); G.forceThief = G.ms.some(m => m.k === 'thief'); const q = storyQueue(); if (q.length) { G.storyQ = q; G.state = 'story'; } }
   dispMoney = S.money;
 }
@@ -1211,12 +1313,13 @@ function toast(s, c = '#fff3d6') { G.toast = { s, c, t: 1.8 }; }
 function addPop(x, y, s, c, size = 30, life = 1.2) { G.pops.push({ x, y, s, c, size, t: 0, life }); }
 function burst(x, y, n, cols, kind = 'conf', spd = 1) { n = Math.min(n, 160 - G.parts.length); for (let i = 0; i < n; i++) { const a = rnd(0, Math.PI * 2), v = rnd(100, 320) * spd; G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(80, 200), life: rnd(0.7, 1.3), t: 0, c: pick(cols), s: rnd(5, 10), r: rnd(0, 6), vr: rnd(-10, 10), kind }); } }
 function makeCust(ch, order, slot, tr = null) {
-  const vip = CH[ch].vip, rare = CH[ch].rare, max = patienceFor(order.length) * (vip ? 0.8 : rare ? 1.5 : 1) * (tr === 'rush' ? 0.55 : 1);
+  const vip = CH[ch].vip, rare = CH[ch].rare, max = patienceFor(order.length) * (vip ? 0.8 : rare ? 1.5 : 1) * (tr === 'rush' ? 0.55 : 1) * (1 + 0.1 * frLv(ch));
   G.slots[slot] = { ch, order: order.map(p => ({ p: pid(p), x: pex(p), done: false })), slot, st: 'in', t: 0, pat: max, max, say: null, sayT: 0, shake: 0, vip: vip || rare, tr, pickT: tr === 'picky' ? rnd(3, 6) : 0 };
   sfx.talk(CH[ch].f); if (vip) { sfx.vip(); toast('✨ الرحمة الكونية وصلت! بتدفع ٣ أضعاف', '#ffe38a'); }
   if (rare) { sfx.cluck(); sfx.vip(); G.slots[slot].say = 'عايز ' + order.map(oName).join(' و '); G.slots[slot].sayT = 3; G.diaaHint = 9; if (G.ah) { G.ah.say = 'طلباته عندي هنا 👆'; G.ah.sayT = 3.5; } toast('🐔 د. ضياء وصل راكب الفرخة! طلباته في كشك أبو حسيبة 👉', '#ffe38a'); }
   speak('عايز ' + order.map(oName).join(' و '), CH[ch].vp);
   if (tr && TRAITS[tr].say) { G.slots[slot].say = TRAITS[tr].say; G.slots[slot].sayT = 2; }
+  if (tr === 'haggle') Object.assign(G.slots[slot], { hag: 1, hagT: 6, say: 'تعملهولي بنص التمن؟ 🥺', sayT: 6 });
 }
 const legOrder = () => { const up = owned(); return [0, 1, 2].map(() => gpick(up)); };
 function spawn() {   // returns false when it held back, so the timer retries soon
@@ -1225,26 +1328,27 @@ function spawn() {   // returns false when it held back, so the timer retries so
   if (G.raid || (G.legend && !G.legend.on && G.dayT > G.legend.at - 6)) return false;
   const here = G.slots.filter(Boolean).map(c => c.ch), favs = area().fav.filter(c => !here.includes(c));
   let ch; if (G.vipLeft > 0 && G.dayT > 20 && grand() < 0.15) { ch = 'cosmic'; G.vipLeft--; } else ch = favs.length && grand() < 0.35 ? gpick(favs) : gpick(POOL.filter(c => !here.includes(c)));
-  const up = owned();
+  const up = owned(), upN = up.filter(p => !PROD[p].rec), upR = up.filter(p => PROD[p].rec);
   let n = 1; if (grand() < Math.min(0.5, 0.2 + S.day * 0.06)) n++; if (S.day >= 6 && grand() < 0.15) n++;
   const order = [];
   let wish = null;
   const own = ownOf(ch);
   if (own && has(own) && grand() < 0.7) order.push(own);
-  else if (own && !has(own) && grand() < 0.65) { wish = own; G.missed[wish] = (G.missed[wish] || 0) + 1; }
+  else if (own && !has(own) && (!PROD[own].rec || recOk(own)) && grand() < 0.65) { wish = own; if (!PROD[own].rec) G.missed[wish] = (G.missed[wish] || 0) + 1; }
   const pk = () => {   // hot days want cold drinks, rainy days want tea, and each season has its sweets
     if (G.wx === 'hot' && grand() < 0.55) { const c = up.filter(p => COLD.includes(p)); if (c.length) return gpick(c); }
     if (G.wx === 'rain' && has('zoolTea') && grand() < 0.45) return 'zoolTea';
     if (G.sea && grand() < 0.3) return gpick(SEAS[G.sea].src);
-    return gpick(up);
+    if (upR.length && grand() < 0.12) return gpick(upR);
+    return gpick(upN);
   };
   while (order.length < n) { const p = pk(); if (!order.includes(p) || up.length < 3) order.push(p); }
   let meal = false; if (S.meal && n >= 2 && !wish && grand() < 0.4) { const m = mkMeal(n); if (m) { order.length = 0; order.push(...m); meal = true; } }
   order.forEach((p, i) => { for (const x in EXTRAS) if (S.extras[x] && EXTRAS[x].on.includes(p) && grand() < (x === 'i' && G.wx === 'hot' ? 0.6 : 0.3)) order[i] = p + '|' + x; });
   let tr = null;
-  if (!CH[ch].vip && S.day >= 3 && !G.tut) { if (G.forceThief && G.dayT > 8) { tr = 'thief'; G.forceThief = false; } else if (grand() < 0.25) tr = gpick(S.diff === 'easy' ? ['rich', 'picky', 'thief'] : ['rich', 'picky', 'thief', 'rush']); }
+  if (!CH[ch].vip && S.day >= 3 && !G.tut) { if (G.forceThief && G.dayT > 8) { tr = 'thief'; G.forceThief = false; } else if (grand() < 0.25) { const tl = S.diff === 'easy' ? ['rich', 'picky', 'thief'] : ['rich', 'picky', 'thief', 'rush']; if (S.day >= 5) tl.push('haggle'); tr = gpick(tl); } }
   const slot = pick(free); makeCust(ch, order, slot, tr);
-  if (wish) { G.slots[slot].say = 'مفيش ' + PROD[wish].n + '؟ 😢'; G.slots[slot].sayT = 2.4; }
+  if (wish) { G.slots[slot].say = PROD[wish].rec ? 'تعرف تعمل ' + PROD[wish].n + '؟ 🤔' : 'مفيش ' + PROD[wish].n + '؟ 😢'; G.slots[slot].sayT = 2.4; }
   if (meal) { const c = G.slots[slot]; c.meal = 1; c.max *= 1.15; c.pat = c.max; }
   return true;
 }
@@ -1287,8 +1391,8 @@ function complete(c) {
   G.combo++; G.bestCombo = Math.max(G.bestCombo, G.combo);
   const mult = 1 + 0.08 * Math.min(G.combo - 1, 5);
   const fav = c.order.some(o => PROD[o.p].ch === c.ch), base = c.order.reduce((s, o) => s + PROD[o.p].price * (PROD[o.p].ch === c.ch ? 2 : 1) + (o.x ? EXTRAS[o.x].price : 0), 0);
-  const pay = Math.round(base * (1 + 0.15 * S.up.price) * (c.vip ? 3 : 1) * (c.dlv ? 1.4 : 1) * mult * area().pay * (G.matchT > 0 ? 1.3 : 1) * (c.tr === 'rush' ? 1.5 : 1) * (c.meal ? 1.25 : 1) * (G.iftarT > 0 ? 1.25 : 1));
-  const tip = Math.round(pay * f * 0.2 * (S.help.tips ? 2 : 1) * (c.tr === 'rich' ? 3 : 1) * (G.sea === 'eid' ? 2 : 1)) + (c.tr === 'rich' ? 5 : 0);
+  const pay = Math.round(base * (1 + 0.15 * S.up.price) * (c.vip ? 3 : 1) * (c.dlv ? 1.4 : 1) * mult * area().pay * (G.matchT > 0 ? 1.3 : 1) * (c.tr === 'rush' ? 1.5 : 1) * (c.meal ? 1.25 : 1) * (G.iftarT > 0 ? 1.25 : 1) * (c.disc || 1) * (S.grow >= 2 ? 1.15 : 1));
+  const tip = Math.round(pay * f * 0.2 * (S.help.tips ? 2 : 1) * (c.tr === 'rich' ? 3 : 1) * (G.sea === 'eid' ? 2 : 1) * (1 + 0.3 * frLv(c.ch))) + (c.tr === 'rich' ? 5 : 0);
   G.happy++; if (fav) G.favN++; served(c.ch, sx, 240);
   if (c.tr === 'thief') {   // runs off without paying: tap him to get the money
     c.st = 'run'; c.t = 0; c.rx = 0; c.due = pay + tip; c.dir = sx < 480 ? -1 : 1; c.say = 'سلام يا معلم! 🏃'; c.sayT = 99;
@@ -1296,6 +1400,7 @@ function complete(c) {
   }
   S.money += pay + tip; G.earned += pay + tip; S.life += pay + tip;
   S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
+  befriend(c, sx);
   if (c.legend && c.waves > 0) { c.waves--; c.order = legOrder().map(p => ({ p: pid(p), x: pex(p), done: false })); c.pat = c.max; c.t = 0; c.say = 'كمان! 🌌'; c.sayT = 1.6; }
   else {
     c.st = 'happy'; c.t = 0; c.say = G.sea === 'eid' && Math.random() < 0.5 ? 'كل سنة وانت طيب 🎉' : G.sea === 'ram' && Math.random() < 0.3 ? 'رمضان كريم 🌙' : pick(CH[c.ch].joy); c.sayT = 99;
@@ -1333,10 +1438,11 @@ function act(key) {
   if (key === 'bread') { if (b.st === 'empty' && !G.items.board) { b.st = 'bread'; use('bread'); sfx.pop(0); if (G.tut) tutEvent('bread'); } else toast(G.items.board ? 'شيل اللي على اللوح الأول' : 'العيش على اللوح خلاص'); return; }
   if (key === 'spit' || key === 'gfal') {
     if (b.st === 'empty') { toast('حط عيش على اللوح الأول'); sfx.wrong(); return; }
-    if (b.st === 'filled') { toast('حشوة واحدة بس'); return; }
+    if (b.st === 'filled') { if (!G.tut && !b.mix && (b.fill === 'chicken' || b.fill === 'gfal') && b.fill !== (key === 'spit' ? 'chicken' : 'gfal')) { b.mix = 'mix'; use(key); sfx.pop(2); burst(235, 470, 8, ['#b46a2a', '#5f8f2a'], 'conf', 0.4); } else toast('حشوة واحدة بس'); return; }
     if (b.st === 'bread') { b.st = 'filled'; b.fill = key === 'spit' ? 'chicken' : 'gfal'; use(key); sfx.pop(2); burst(235, 470, 8, key === 'spit' ? ['#b46a2a', '#d08a3a'] : ['#5f8f2a', '#8fbf43'], 'conf', 0.4); if (G.tut) tutEvent(key); }
     return;
   }
+  if (key === 'board' && G.sel) { const s = G.sel; G.sel = null; if (boardAdd(s)) return; }
   if (key === 'board') { if (b.st === 'filled') { b.st = 'wrap'; b.wrapT = 0; sfx.wrap(); if (G.tut) tutEvent('board'); } else if (b.st === 'bread') toast(has('hankSand') ? 'حط فراخ أو فلافل خضرا' : 'حط فراخ من السيخ'); return; }
   if (key === 'gtray') { if (!G.items.gout) { G.items.gout = 'sakrFal'; G.born.gout = G.t; use('gtray'); sfx.pop(3); G.press.gout = 0.3; } else toast('قدّم الفلافل اللي جاهزة الأول'); return; }
   if (key === 'fryer') { if (G.fry < 0 && !G.items.fout) { G.fry = 0; use('fryer'); sfx.sizzle(); } else if (G.fry >= 0) toast('البطاطس بتتقلي...'); else toast('قدّم البطاطس اللي جاهزة الأول'); return; }
@@ -1344,7 +1450,7 @@ function act(key) {
   if (key.startsWith('tap')) { const i = +key[3]; if (G.taps[i] < 0 && !G.items[key]) { G.taps[i] = 0; use(key); sfx.pour(); if (G.tut) tutEvent(key); } return; }
   if (key === 'trash') {
     if (G.sel) { if (!G.sel.startsWith('src:')) G.items[G.sel] = null; G.sel = null; sfx.trash(); return; }
-    if (b.st === 'bread' || b.st === 'filled') { b.st = 'empty'; b.fill = null; b.sauce = 0; sfx.trash(); burst(235, 470, 10, ['#888', '#c8a070'], 'conf', 0.5); }
+    if (b.st === 'bread' || b.st === 'filled') { b.st = 'empty'; b.fill = null; b.sauce = 0; b.mix = null; sfx.trash(); burst(235, 470, 10, ['#888', '#c8a070'], 'conf', 0.5); }
     return;
   }
   if (key === 'radio') nextTape();
@@ -1403,9 +1509,10 @@ function updateAH(dt) {
 }
 function finishRestock(k) {
   if (k === 'gen') { G.power = true; const [x, y] = ahTarget(k); addPop(x, y - 40, '💡 النور رجع!', '#ffe38a', 26); sfx.ding(); burst(x, y, 14, ['#ffe066', '#ffffff'], 'star', 0.6); return; }
-  const c = Math.min(S.money, RESTOCK); S.money -= c; G.spent += c;
+  const g = mkGrp(k), wh = !CHAL && (S.wh[g] || 0) > 0; if (wh) S.wh[g]--;
+  const c = wh ? 0 : Math.min(S.money, mkPrice(g)); S.money -= c; G.spent += c;
   G.stock[k] = capOf(k); delete G.ah.warned[k];
-  const [x, y] = ahTarget(k); addPop(x, y - 40, '+' + ar(capOf(k)) + (c ? '  -' + ar(c) + ' ج' : ''), '#9be37a', 24); sfx.ding(); burst(x, y, 10, ['#ffd23f', '#c8a070', '#ffffff'], 'conf', 0.5);
+  const [x, y] = ahTarget(k); addPop(x, y - 40, '+' + ar(capOf(k)) + (wh ? '  📦 من المخزن' : c ? '  -' + ar(c) + ' ج' : ''), wh ? '#9be3ff' : c > RESTOCK ? '#ffb38a' : '#9be37a', 24); sfx.ding(); burst(x, y, 10, ['#ffd23f', '#c8a070', '#ffffff'], 'conf', 0.5);
 }
 const stationOn = k => k === 'freezer' ? has('shawqyIce') : stationVisible(k);
 function ahTap() {
@@ -1444,7 +1551,7 @@ function stationAt(x, y) {
   return null;
 }
 function itemAt(x, y) {
-  for (const k of HOLDS) { if (!G.items[k]) continue; const [sx, sy] = SLOT[k]; if (Math.abs(x - sx) < 18 && y > sy - 54 && y < sy + 8) return k; }
+  for (const k of HOLDS) { if (!G.items[k]) continue; const [sx, sy] = SLOT[k]; if (Math.abs(x - sx) < (HOLDS.length > 2 ? 12 : 18) && y > sy - 54 && y < sy + 8) return k; }
   for (const k in SLOT) { if (!G.items[k] || HOLDS.includes(k)) continue; const [sx, sy] = SLOT[k]; if (Math.abs(x - sx) < 38 && y > sy - 80 && y < sy + 14) return k; }
   return null;
 }
@@ -1517,6 +1624,7 @@ cv.addEventListener('pointerdown', e => {
   if (G.tut && TUT[G.tut.step].tap) { if (G.tut.t > 0.5) { sfx.tap(); tutNext(); } return; }
   const rb = hitBT(x, y, b => b.id === 'raid'); if (rb) { rb.fn(x, y); return; }
   const th = runAt(x, y); if (th) { catchThief(th); return; }
+  const hg = hagAt(x, y); if (hg) { hagAnswer(hg[0], hg[1]); return; }
   if (G.bird && Math.hypot(x - G.bird.x, y - G.bird.y) < 64) {
     burst(G.bird.x, G.bird.y, 22, ['#e53935', '#ffd23f', '#ffffff']); addPop(G.bird.x, G.bird.y - 30, 'مسكته! +١٠', '#9be37a', 32);
     S.money += 10; G.earned += 10; G.coins.push({ x0: G.bird.x, y0: G.bird.y, t: 0, d: 0.6, k: 0 }); G.bird = null; sfx.squawk(); sfx.cash(); buzz(30); return;
@@ -1529,7 +1637,7 @@ cv.addEventListener('pointerdown', e => {
   if (sk && tutAllows('src')) { const s = SRC[sk]; if (s.st && G.stock[s.st] <= 0) { emptyAsk(s.st); return; } G.drag = { key: 'src:' + sk, x, y, sx: x, sy: y, moved: false }; sfx.pick(); return; }
   if (G.sel) { const c = custAt(x, y); if (c && tutAllows('cust')) { deliver(c, G.sel); return; } }
   const k = stationAt(x, y);
-  if (k && tutAllows('station', k)) { if (k === 'trash' || k === 'vit' || k === 'sauce' || k === 'ice' || !G.sel) act(k); else { G.sel = null; act(k); } return; }
+  if (k && tutAllows('station', k)) { if (k === 'trash' || k === 'vit' || k === 'sauce' || k === 'ice' || k === 'board' || !G.sel) act(k); else { G.sel = null; act(k); } return; }
   if (!G.tut) G.sel = null;
 });
 cv.addEventListener('pointermove', e => { const p = toGame(e); ptr = p; if (slideB) slideB.fn(p.x, p.y); if (G.drag) { G.drag.x = p.x; G.drag.y = p.y; if (Math.hypot(p.x - G.drag.sx, p.y - G.drag.sy) > 10) G.drag.moved = true; } });
@@ -1538,6 +1646,7 @@ addEventListener('pointerup', e => {
   if (!d.moved) { G.sel = G.sel === d.key ? null : d.key; return; }
   const c = custAt(p.x, p.y);
   if (c && tutAllows('cust')) { deliver(c, d.key); return; }
+  const bd = ST.board; if (p.x > bd.x && p.x < bd.x + bd.w && p.y > bd.y && p.y < bd.y + bd.h && boardAdd(d.key)) return;
   if (!G.tut && inVit(p.x, p.y) && storeItem(d.key)) return;
   for (const xt in EXTRAS) { const sk = EXTRAS[xt].st, r = ST[sk]; if (!G.tut && stationVisible(sk) && !d.key.startsWith('src:') && p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h) { applyExtra(xt, d.key); return; } }
   const r = ST.trash; if (!G.tut && !d.key.startsWith('src:') && p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h) { G.items[d.key] = null; sfx.trash(); return; }
@@ -1566,7 +1675,7 @@ function update(dt) {
   for (const k in G.press) G.press[k] -= dt;
   // stations
   const b = G.board;
-  if (b.st === 'wrap') { b.wrapT += dt; if (b.wrapT > 0.42) { G.items.board = (b.fill === 'chicken' ? 'hafoWrap' : 'hankSand') + (b.sauce ? '|s' : ''); G.born.board = G.t; b.st = 'empty'; b.fill = null; b.sauce = 0; sfx.ding(); burst(235, 460, 10, ['#ffd23f', '#ffffff'], 'star', 0.5); } }
+  if (b.st === 'wrap') { b.wrapT += dt; if (b.wrapT > 0.42) { const rc = recipeOf(b); G.items.board = rc + (b.sauce && EXTRAS.s.on.includes(rc) ? '|s' : ''); G.born.board = G.t; b.st = 'empty'; b.fill = null; b.sauce = 0; b.mix = null; sfx.ding(); burst(235, 460, 10, ['#ffd23f', '#ffffff'], 'star', 0.5); if (PROD[rc].rec && !S.rec[rc]) discover(rc); } }
   const pw = G.power !== false;
   if (pw) for (let i = 0; i < 4; i++) if (G.taps[i] >= 0) { G.taps[i] += dt; if (G.taps[i] >= dur(1.3)) { G.taps[i] = -1; G.items['tap' + i] = TAPS[i].p; G.born['tap' + i] = G.t; sfx.ding(); } }
   if (G.fry >= 0 && pw) { G.fry += dt; if (G.fry >= dur(2.6)) { G.fry = -1; G.items.fout = 'jabFries'; G.born.fout = G.t; sfx.ding(); burst(465, 470, 8, ['#f4c430', '#ffffff'], 'star', 0.4); } }
@@ -1596,6 +1705,7 @@ function update(dt) {
     c.t += dt; if (c.shake > 0) c.shake -= dt;
     if (c.sayT > 0) { c.sayT -= dt; if (c.sayT <= 0 && c.st === 'wait') c.say = null; }
     if (c.st === 'wait' && c.tr === 'picky' && c.pickT > 0 && !tut) { c.pickT -= dt; if (c.pickT <= 0) pickyChange(c); }
+    if (c.st === 'wait' && c.hag === 1 && !tut && (c.hagT -= dt) <= 0) hagAnswer(c, false);
     if (c.st === 'in' && c.t > 0.45) { c.st = 'wait'; c.t = 0; }
     else if (c.st === 'run') { c.rx = c.dir * Math.pow(Math.min(1, c.t / 1.8), 2) * 560; if (c.t > 1.8) { toast('النصاب هرب بـ' + ar(c.due) + ' ج 😤', '#ffd0c8'); G.slots[i] = null; } }
     else if (c.st === 'wait' && !tut && isFinite(c.max) && !shut) {
@@ -1613,7 +1723,7 @@ function update(dt) {
   if (!tut && G.dlvQ && G.dlvQ.length && G.dayT >= G.dlvQ[0] && G.time > 15 && !G.raid) {   // the phone rings and a delivery rider pulls up
     const free = [0, 1, 2, 3].filter(i => !G.slots[i]), busy = G.slots.filter(c => c && (c.st === 'wait' || c.st === 'in')).length;
     if (free.length && busy < (S.day <= 10 ? 3 : 4)) {
-      G.dlvQ.shift(); const up = owned().filter(p => !PROD[p].sea), sl2 = pick(free); makeCust('dlv', [gpick(up), gpick(up)], sl2);
+      G.dlvQ.shift(); const up = owned().filter(p => !PROD[p].sea && !PROD[p].rec), sl2 = pick(free); makeCust('dlv', [gpick(up), gpick(up)], sl2);
       const c = G.slots[sl2]; c.dlv = 1; c.max = c.pat = S.diff === 'easy' ? 70 : 40; sfx.phone(); toast('📞 طلب دليفري! جهّزه قبل ما الطيار يمشي 🛵', '#ffe38a');
     }
   }
@@ -1746,6 +1856,17 @@ const STREETS = {
     ctx.fillStyle = '#2a2e3a'; ctx.fillRect(132, 274, 734, CT - 274); for (let x = 140; x < 866; x += 30) L([[x, 276], [x, CT]], 1, '#3a4050');
   },
 };
+function kioskPosts() {   // wooden posts and a beam: the cart has become a kiosk
+  for (const x of [124, 858]) { R(x, 20, 16, CT - 30, 3, '#8a5228', { lw: 2.6, sd: 0.2 }); for (let k = 0; k < 5; k++) L([[x + 4, 70 + k * 44], [x + 12, 74 + k * 44]], 1.2, '#5a3418', 0.6); }
+  R(124, 38, 750, 14, 3, '#9a6232', { lw: 2.4 });
+}
+function shopFront(a1, a2) {   // a proper shop: a solid sign band with bulbs, and stone pillars at the sides
+  for (const x of [118, 856]) { R(x, 30, 24, CT - 40, 2, '#e8dcc8', { lw: 2.6, sd: 0.15 }); for (let k = 0; k < 6; k++) L([[x + 3, 60 + k * 38], [x + 21, 60 + k * 38]], 1.2, '#b8a888', 0.7); }
+  ctx.fillStyle = a1; ctx.fillRect(0, 0, W, 34); for (let x = 30; x < W; x += 120) { ctx.fillStyle = a2; ctx.fillRect(x, 10, 60, 14); }
+  ctx.save(); ctx.globalAlpha = 0.25; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 6); ctx.restore();
+  ctx.fillStyle = '#d4a017'; ctx.fillRect(0, 34, W, 6); L([[0, 34], [W, 34]], 2, OLC); L([[0, 40], [W, 40]], 2.4, OLC);
+  for (let x = 20; x < W; x += 40) { glow(x, 46, 12, '#ffe38a', 0.5); E(x, 46, 4.5, 5, '#fff6c8', { lw: 1.6, hl: 0.5, v: false }); }
+}
 function renderBG() {
   bg.width = cv.width; bg.height = cv.height;
   bgx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0);
@@ -1814,15 +1935,19 @@ function renderBG() {
     for (let i = 0; i < 7; i++) { const x = 872 + i * 12.5, c = ['#e53935', '#ffb347', '#4a8bff', '#2e9d4a', '#ff8ae8', '#ffd23f', '#8a4ad8'][i]; L([[x, 82], [x, 86]], 1.2, '#2a2a2a'); R(x - 5, 86, 10, 10 + (i % 2) * 4, 2, c, { lw: 1.4, hl: 0.2 }); }
     R(864, 134, 96, 8, 2, '#8a5228', { lw: 2.2 }); R(864, 200, 96, 6, 2, '#6a3a18', { lw: 1.8 });
     for (let i = 0; i < 6; i++) R(870 + i * 15, 182 - (i % 3) * 4, 12, 18 + (i % 3) * 4, 2, ['#c62828', '#f4f2ec', '#2e7fb8', '#ffd23f', '#2e9d4a', '#ff8a3d'][i], { lw: 1.4, hl: 0.15 });
-    // striped awning across the top
+    // striped awning across the top (a kiosk adds posts and a beam; a shop swaps it for a sign band)
     const [aw1, aw2] = awCols();
+    if (S.grow >= 2) shopFront(aw1, aw2); else {
+    if (S.grow) kioskPosts();
     for (let x = 0; x < W; x += 40) { ctx.fillStyle = (x / 40) % 2 ? aw2 : aw1; ctx.fillRect(x, 0, 40, 26); }
     for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.arc(x + 20, 26, 20, 0, Math.PI); ctx.fillStyle = (x / 40) % 2 ? aw2 : aw1; ctx.fill(); ctx.lineWidth = 2.4; ctx.strokeStyle = OLC; ctx.stroke(); }
     L([[0, 26], [W, 26]], 2.4, OLC); ctx.save(); ctx.globalAlpha = 0.2; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, 8); ctx.restore();
+    }
     // counter back ledge + steel counter
     R(-6, CT - 14, W + 12, 22, 4, '#c27a3a', { lw: 3, sd: 0.15 });
-    const sg = ctx.createLinearGradient(0, CT, 0, H), gc = S.cos.gold ? ['#c9961a', '#ffe08a', '#9a6a10'] : ['#b7c1c7', '#dfe5e8', '#8f9aa1']; sg.addColorStop(0, gc[0]); sg.addColorStop(0.15, gc[1]); sg.addColorStop(1, gc[2]); ctx.fillStyle = sg; ctx.fillRect(0, CT + 6, W, H - CT);
+    const sg = ctx.createLinearGradient(0, CT, 0, H), gc = S.cos.gold ? ['#c9961a', '#ffe08a', '#9a6a10'] : S.grow >= 2 ? ['#d6d2ca', '#f6f4f0', '#b4aea4'] : ['#b7c1c7', '#dfe5e8', '#8f9aa1']; sg.addColorStop(0, gc[0]); sg.addColorStop(0.15, gc[1]); sg.addColorStop(1, gc[2]); ctx.fillStyle = sg; ctx.fillRect(0, CT + 6, W, H - CT);
     ctx.save(); ctx.globalAlpha = 0.25; for (let i = 0; i < 24; i++) L([[i * 44, CT + 10], [i * 44 + 30, H]], 1, '#ffffff'); ctx.restore();
+    if (S.grow >= 2 && !S.cos.gold) for (let i = 0; i < 9; i++) { const x = hash(i + 40) * W, y = CT + 20 + hash(i + 50) * 200; Q(x, y, x + 40, y + 20 - hash(i) * 40, x + 90, y + 10, 1.2, '#9a948a', 0.5); }
     L([[0, CT + 7], [W, CT + 7]], 3, OLC);
     ctx.fillStyle = 'rgba(0,0,0,.12)'; ctx.fillRect(0, H - 14, W, 14);
   });
@@ -1865,6 +1990,7 @@ function drawOrders(t) {
       const p = RRp(sx - w / 2, 40, w, 46, 20); ctx.fillStyle = c.st === 'happy' ? '#effde6' : '#ffecea'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = OLC; ctx.stroke(p);
       T(c.say, sx, 64, fit(c.say, w - 16, 17), c.st === 'happy' ? '#2e7d32' : '#c62828');
     }
+    if (c.hag === 1 && c.st === 'wait') for (const [dx, yes] of HAGB) { const r = 19 * (1 + Math.sin(t * 6) * 0.05); E(sx + dx, 110, r, r, yes ? '#2e9d4a' : '#c62828', { lw: 2.6, hl: 0.4, v: false }); T(yes ? '✓' : '✗', sx + dx, 111, 22, '#fff', FD); }
     if (c.st === 'wait') {
       const p = RRp(cx - 30, y0, 60, h, 30);
       ctx.fillStyle = c.vip ? 'rgba(255,240,190,.88)' : c.meal ? 'rgba(240,214,160,.94)' : 'rgba(255,255,255,.82)'; ctx.fill(p); ctx.lineWidth = 2.5; ctx.strokeStyle = 'rgba(28,18,12,.6)'; ctx.stroke(p);
@@ -1894,6 +2020,7 @@ function nameTags() {
     if (!c || c.st === 'out') continue; const sx = SLOTX[c.slot] + (c.rx || 0), nm = c.legend && c.st === 'wait' ? '🌟 موجة ' + ar(3 - c.waves) + ' من ٣' : CH[c.ch].n;
     const p = RRp(sx - 66, CT - 4, 132, 22, 11); ctx.fillStyle = CH[c.ch].rare ? '#b8860b' : c.vip ? '#5b3cc4' : c.dlv ? '#c62828' : 'rgba(28,18,12,.85)'; ctx.fill(p);
     T(nm, sx, CT + 7, fit(nm, 122, 13), '#ffe9b8');
+    const fl = frLv(c.ch); if (fl) { const hp = heartP(sx + 74, CT + 8, 11); ctx.fillStyle = '#ff4f7a'; ctx.fill(hp); ctx.lineWidth = 2; ctx.strokeStyle = OLC; ctx.stroke(hp); T(ar(fl), sx + 74, CT + 6, 12, '#fff', FD); }
     if (c.tr) { E(sx - 70, CT + 7, 13, 13, c.tr === 'thief' ? '#ffd0c8' : '#fff3d6', { lw: 2, hl: 0, v: false }); T(TRAITS[c.tr].i, sx - 70, CT + 8, 15, '#000'); }
   }
 }
@@ -1927,8 +2054,11 @@ function drawBoard(t) {
     ctx.save(); ctx.translate(cx, cy - 6);
     if (k > 0) { ctx.save(); ctx.beginPath(); ctx.rect(-xe, -40, xe * 2, 80); ctx.clip(); }
     E(0, 0, 58, 20, '#efc480', { lw: 2.8 });
-    if (b.fill === 'chicken') for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(-34 + i * 13, -2 + (i % 2) * 5); ctx.rotate(0.5 - i * 0.2); R(-9, -4, 18, 8, 3, '#b46a2a', { lw: 1.8 }); ctx.restore(); }
-    if (b.fill === 'gfal') for (let i = 0; i < 4; i++) E(-24 + i * 16, -2 + (i % 2) * 5, 8, 7, '#5f8f2a', { lw: 2, seed: i });
+    if (b.fill === 'chicken' || b.mix === 'mix') for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(-34 + i * 13, -2 + (i % 2) * 5); ctx.rotate(0.5 - i * 0.2); R(-9, -4, 18, 8, 3, '#b46a2a', { lw: 1.8 }); ctx.restore(); }
+    if (b.fill === 'gfal' || b.mix === 'mix') for (let i = 0; i < 4; i++) E(-24 + i * 16, -2 + (i % 2) * 5, 8, 7, '#5f8f2a', { lw: 2, seed: i });
+    if (b.fill === 'fal') for (let i = 0; i < 4; i++) E(-24 + i * 16, -2 + (i % 2) * 5, 8, 7, '#8f7b58', { lw: 2, seed: i });
+    if (b.fill === 'ice') for (let i = 0; i < 3; i++) E(-20 + i * 20, -4, 11, 9, i === 1 ? '#ffb3c8' : '#fbfaf6', { lw: 2, seed: i });
+    if (b.mix === 'fries') for (let i = 0; i < 6; i++) { ctx.save(); ctx.translate(-30 + i * 12, -6); ctx.rotate(-0.6 + i * 0.25); R(-3, -14, 6, 22, 2, '#f6c84a', { lw: 1.6 }); ctx.restore(); }
     if (b.sauce) { const pts = []; for (let i = 0; i <= 10; i++) pts.push([-40 + i * 8, -4 + (i % 2 ? 4 : -4)]); L(pts, 5, OLC); L(pts, 3, '#f4ead0'); }
     if (k > 0) {
       ctx.restore();
@@ -2372,12 +2502,12 @@ function drawIntro() {
   if (G.rival) notes.push('🛒 سكرتاعوط فاتح عربية قصادك! اللي يستنى كتير هيروحله');
   if (G.wx) notes.push(G.wx === 'hot' ? '☀️ يوم حر: الناس عايزة ساقع وتلج' : '🌧 يوم مطر: الشاي بيكسّر');
   if (notes.length) { const nt = notes.join('   •   '); T(nt, 480, 150, fit(nt, 610, 15, FD), G.legend ? '#5b3cc4' : '#8a3a1a', FD); }
-  const cw = 58;
+  const cw = Math.min(58, 610 / own.length), cs = cw / 58;
   own.forEach((p, i) => {
     const a = clamp((G.introT - 0.2 - i * 0.05) / 0.3, 0, 1), x = 480 + (own.length - 1) * cw / 2 - i * cw, y = 164;
-    ctx.save(); ctx.globalAlpha = a; ctx.translate(0, (1 - easeOut(a)) * 16);
-    const cp = RRp(x - 26, y, 52, 66, 10); ctx.fillStyle = '#ffffff'; ctx.fill(cp); ctx.lineWidth = 2; ctx.strokeStyle = '#e0cfae'; ctx.stroke(cp);
-    prodIcon(p, x, y + 46, 0.4); T(ar(PROD[p].price) + ' ج', x, y + 57, 11, '#2e9d4a', FD);
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y + (1 - easeOut(a)) * 16); ctx.scale(cs, cs);
+    const cp = RRp(-26, 0, 52, 66, 10); ctx.fillStyle = '#ffffff'; ctx.fill(cp); ctx.lineWidth = 2; ctx.strokeStyle = PROD[p].rec ? '#2e9d4a' : '#e0cfae'; ctx.stroke(cp);
+    prodIcon(p, 0, 46, 0.4); T(ar(PROD[p].price) + ' ج', 0, 57, 11, '#2e9d4a', FD);
     ctx.restore();
   });
   if (EN) {
@@ -2395,6 +2525,8 @@ function drawIntro() {
     T('دين أبو حسيبة لسكرتاعوط', 612, 371, 13, '#7a4a2a'); ctx.fillStyle = 'rgba(28,18,12,.75)'; ctx.fill(RRp(250, 364, 270, 14, 7));
     if (f > 0) { ctx.fillStyle = f >= 1 ? '#2e9d4a' : '#ff8a3d'; ctx.fill(RRp(252, 366, 266 * f, 10, 5)); }
     T(f >= 1 ? 'اتسدد! 🎉' : ar(paid) + ' / ' + ar(DEBT), 385, 371, 11, '#fff');
+    const mk = Object.keys(G.mk || {}).filter(grpOn);
+    if (mk.length) { const s = '🧺 سوق الجملة: ' + mk.map(g => grpName(g) + (G.mk[g] > RESTOCK ? ' غليت (' + ar(G.mk[g]) + ' ج للتعبئة)' : ' رخصت (' + ar(G.mk[g]) + ' ج)')).join(' • ') + ' • خزّن من السوق'; T(s, 480, 394, fit(s, 600, 13), '#8a3a1a'); }
   }
   ctx.restore();
   bigBtn(490, 410, 260, 60, EN ? 'يلا بينا!' : CHAL ? 'ابدأ التحدي!' : 'افتح العربية!', startPlay);
@@ -2434,6 +2566,7 @@ function shopDeals() {
   for (const k in TAPES) if (!S.tapes[k] && !TAPES[k].lock && S.money >= TAPES[k].cost) n++;
   for (const [x, c] of EXTRA_SHOP) if (!S.extras[x] && S.money >= c) n++;
   if (!S.meal && S.money >= MEAL_COST) n++;
+  GROW.forEach((g, i) => { if (S.grow === i && S.money >= g.c) n++; });
   return n;
 }
 function buy(cost, fn, x, y) { S.money -= cost; fn(); save(); sfx.cash(); sfx.combo(4); burst(x, y, 22, ['#ffd23f', '#9be37a', '#fff'], 'star', 0.7); }
@@ -2451,10 +2584,19 @@ function shopCard(i, o, cols = 4) {
     ctx.save(); ctx.globalAlpha = can ? 1 : 0.45; const bp = RRp(cx - 56, by, 112, 24, 12); ctx.fillStyle = can ? '#2e9d4a' : '#888'; ctx.fill(bp); ctx.lineWidth = 2.4; ctx.strokeStyle = OLC; ctx.stroke(bp); coinIcon(cx + 34, by + 12, 8); T(ar(o.cost), cx - 6, by + 13, 16, '#fff', FD); ctx.restore();
     if (can) btn(x, y, w, h, () => buy(o.cost, o.fn, cx, by));
   } else if (o.st === 'use') { const bp = RRp(cx - 48, by, 96, 24, 12); ctx.fillStyle = '#2e7fb8'; ctx.fill(bp); ctx.lineWidth = 2.4; ctx.strokeStyle = OLC; ctx.stroke(bp); T(o.btn || 'شغّل', cx, by + 13, 15, '#fff', FD); btn(x, y, w, h, () => { sfx.tap(); o.fn(); }); }
-  else T({ own: 'عندك ✓', max: 'أقصى مستوى ✓', sel: o.selTxt || 'شغال دلوقتي ♪', lock: '🔒 ' + (o.note || '') }[o.st], cx, by + 12, fit(o.note || 'xxxxxxxx', w - 20, 14), o.st === 'lock' ? '#9a6a4a' : '#2e7d32');
+  else T({ own: 'عندك ✓', max: 'أقصى مستوى ✓', full: 'المخزن مليان ✓', sel: o.selTxt || 'شغال دلوقتي ♪', lock: '🔒 ' + (o.note || '') }[o.st], cx, by + 12, fit(o.note || 'xxxxxxxx', w - 20, 14), o.st === 'lock' ? '#9a6a4a' : '#2e7d32');
   if (o.st === 'sel' && o.off) btn(x, y, w, h, () => { sfx.tap(); o.off(); save(); });
 }
 const MEAL_COST = 180;
+function mkIcon(g, x, y) {   // a wooden crate with what it holds on top
+  prodIcon({ bread: 'wbr', spit: 'hafoWrap', gfal: 'hankSand', gtray: 'sakrFal', fryer: 'jabFries', kettle: 'zoolTea', tap: 'aaoJuice', freezer: 'shawqyIce' }[g], x, y + 8, 0.6);
+  R(x - 34, y + 4, 68, 30, 4, '#c8945a', { lw: 2.6 }); L([[x - 34, y + 19], [x + 34, y + 19]], 2, '#8a5a2a'); for (const s of [-1, 1]) L([[x + s * 22, y + 4], [x + s * 22, y + 34]], 2, '#8a5a2a');
+}
+function growIcon(lv, x, y, t) {   // a little kiosk, or a shop front with a sign and bulbs
+  const [a1, a2] = awCols();
+  if (lv === 1) { R(x - 30, y - 18, 60, 48, 4, '#8a5228', { lw: 2.6 }); R(x - 22, y - 8, 44, 22, 3, '#ffd36a', { lw: 2 }); for (let i = 0; i < 4; i++) { ctx.fillStyle = i % 2 ? a2 : a1; ctx.fillRect(x - 36 + i * 18, y - 32, 18, 14); } L([[x - 36, y - 32], [x + 36, y - 32]], 2.4); L([[x - 36, y - 18], [x + 36, y - 18]], 2.4); R(x - 30, y + 16, 60, 8, 2, '#c9d1d6', { lw: 2 }); }
+  else { R(x - 50, y - 26, 100, 58, 4, '#e8dcc8', { lw: 2.6 }); R(x - 46, y - 36, 92, 18, 3, a1, { lw: 2.4 }); T('مطعم', x, y - 27, 12, '#fff', FD, 'center', 2); R(x - 40, y - 8, 38, 32, 2, '#9fd8ff', { lw: 2 }); R(x + 8, y - 8, 30, 40, 2, '#8a5228', { lw: 2 }); for (let i = 0; i < 5; i++) dot(x - 40 + i * 20, y - 14, 2.6, (i + Math.floor(t * 3)) % 2 ? '#ffd23f' : '#fff6c8'); }
+}
 function mealIcon(x, y, t) {
   prod('jabFries', x - 20, y + 4, 0.55, t); prod('aaoJuice', x + 22, y + 6, 0.55, t);
   PL([[x - 30, y - 8], [x + 30, y - 8], [x + 26, y + 32], [x - 26, y + 32]], '#d9a866', { lw: 2.6, hl: 0.2 });
@@ -2468,17 +2610,20 @@ function goldIcon(x, y, t) { awIcon(['#c9961a', '#2a1a0a'], x, y); ctx.save(); c
 function drawShop(t) {
   dim(0.72); panel(40, 60, 880, 462);
   R(370, 34, 220, 50, 16, '#2e7fb8', { lw: 3.5 }); T('🛒 السوق', 480, 60, 30, '#fff', FD, 'center', 5, '#123a5a');
-  const tabs = [['menu', 'المنيو'], ['up', 'الترقيات'], ['help', 'المساعدين'], ['tapes', 'الشرايط'], ['cos', 'زينة العربية']];
+  const tabs = [['menu', 'المنيو'], ['up', 'الترقيات'], ['help', 'المساعدين'], ['mk', 'الجملة'], ['tapes', 'الشرايط'], ['cos', 'زينة العربية']];
   tabs.forEach(([k, n], i) => {
-    const x = 724 - i * 168, sel = G.shopTab === k, p = RRp(x, 90, 156, 32, 12);
-    ctx.fillStyle = sel ? '#d7263d' : '#f0e2c4'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T(n, x + 78, 107, 16, sel ? '#fff' : '#5a3a20', FD);
-    btn(x, 88, 156, 36, () => { G.shopTab = k; sfx.tap(); });
+    const x = 744 - i * 140, sel = G.shopTab === k, p = RRp(x, 90, 132, 32, 12);
+    ctx.fillStyle = sel ? '#d7263d' : '#f0e2c4'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T(n, x + 66, 107, fit(n, 120, 16, FD), sel ? '#fff' : '#5a3a20', FD);
+    btn(x, 88, 132, 36, () => { G.shopTab = k; sfx.tap(); });
   });
   const tab = G.shopTab || 'menu';
   if (tab === 'menu') MENU_SHOP.forEach(([p, c], i) => { const ask = !S.menu[p] && G.missed && G.missed[p]; shopCard(i, { art: (x, y) => { glow(x, y, 44, '#fff1a0', 0.6); prodIcon(p, x, y + 28, 0.95); if (ask) { R(x - 96, y - 44, 64, 20, 10, '#c62828', { lw: 1.8, v: false }); T('اتطلب ' + ar(ask) + '×', x - 64, y - 33, 11, '#fff'); } }, n: PROD[p].n, d: ar(PROD[p].price) + ' ج • ' + CH[PROD[p].ch].n + ' بيدفع الضعف', st: S.menu[p] ? 'own' : 'buy', cost: c, fn: () => { S.menu[p] = 1; } }, 5); });
   if (tab === 'menu') EXTRA_SHOP.forEach(([x, c], j) => { const E = EXTRAS[x]; shopCard(MENU_SHOP.length + j, { art: (ax, ay) => { glow(ax, ay, 44, '#e0f4ff', 0.6); prodIcon(E.on[0] + '|' + x, ax, ay + 28, 0.95); }, n: 'إضافة ' + E.n, d: '+' + ar(E.price) + ' ج على ' + E.d, st: S.extras[x] ? 'own' : 'buy', cost: c, fn: () => { S.extras[x] = 1; } }, 5); });
   if (tab === 'menu') shopCard(MENU_SHOP.length + EXTRA_SHOP.length, { art: (x, y) => mealIcon(x, y, t), n: 'وجبات كومبو', d: 'ساندوتش وجنب ومشروب • +٢٥٪', st: S.meal ? 'own' : 'buy', cost: MEAL_COST, fn: () => { S.meal = 1; } }, 5);
   if (tab === 'up') UPS.forEach((u, i) => { const lv = S.up[u.k]; shopCard(i, { art: (x, y) => upIcon(u.k, x, y), n: u.n, d: u.d, lv, st: lv >= 5 ? 'max' : 'buy', cost: u.c[lv], fn: () => { S.up[u.k]++; } }); });
+  if (tab === 'up') GROW.forEach((g, i) => shopCard(UPS.length + i, { art: (x, y) => growIcon(i + 1, x, y, t), n: g.n, d: g.d, st: S.grow > i ? 'own' : S.grow < i ? 'lock' : 'buy', note: 'محتاج الكشك الأول', cost: g.c, fn: () => { S.grow = i + 1; setHolds(); toast(i ? '🏪 مبروك المحل الجديد!' : '🏠 العربية بقت كشك!', '#9be37a'); } }));
+  if (tab === 'mk') { const mk = mkFor(S.day); MKG.filter(grpOn).forEach((g, i) => { const pr = mk[g] ?? RESTOCK, n = S.wh[g] || 0, q = Math.min(CRATE, WH_MAX - n);
+    shopCard(i, { art: (x, y) => mkIcon(g, x, y), n: grpName(g) + (pr > RESTOCK ? ' 🔺 غالي' : pr < RESTOCK ? ' 🔻 رخيص' : ''), d: 'التعبئة ' + ar(pr) + ' ج • في المخزن ' + ar(n) + ' من ' + ar(WH_MAX), st: q <= 0 ? 'full' : 'buy', cost: pr * q, fn: () => { S.wh[g] = n + q; toast('📦 خزّنت ' + ar(q) + ' تعبئات ' + grpName(g) + '، أبو حسيبة هياخد منهم ببلاش', '#9be3ff'); } }); }); }
   if (tab === 'help') HELP.forEach((h, i) => shopCard(i, { art: (x, y) => helpIcon(h.k, x, y, t), n: h.n, d: h.d, st: S.help[h.k] ? 'own' : h.req && !has(h.req) ? 'lock' : 'buy', note: h.req ? 'محتاج ' + PROD[h.req].n : '', cost: h.c, fn: () => { S.help[h.k] = 1; } }));
   if (tab === 'tapes') Object.keys(TAPES).forEach((k, i) => { const tp = TAPES[k]; shopCard(i, { art: (x, y) => cassette(x, y, tp.c, 0.9, S.tape === k), n: tp.n, d: tp.d, st: S.tape === k ? 'sel' : S.tapes[k] ? 'use' : tp.lock ? 'lock' : 'buy', note: 'كمّل الألبوم', cost: tp.cost, fn: () => { S.tapes[k] = 1; S.tape = k; save(); } }); });
   if (tab === 'cos') {
@@ -2585,21 +2730,42 @@ function drawAlbum(t) {
     const p = RRp(cx - 59, y, 118, 132, 12); ctx.fillStyle = on ? '#ffffff' : '#ece0c8'; ctx.fill(p); ctx.lineWidth = gold ? 4 : 2.5; ctx.strokeStyle = gold ? '#d4a017' : on ? '#b79bff' : '#c8b898'; ctx.stroke(p);
     ctx.save(); ctx.beginPath(); ctx.rect(cx - 56, y + 3, 112, 86); ctx.clip(); if (on) glow(cx, y + 50, 50, CH[ch].vip ? '#ffd86b' : '#fff1a0', 0.6); albPortrait(ch, cx, y + 138, 0.5, on); ctx.restore();
     T(on ? CH[ch].n : '؟؟؟', cx, y + 100, fit(on ? CH[ch].n : '؟؟؟', 108, 13), '#3a1d0e', FD);
-    ctx.fillStyle = '#e0d2b8'; ctx.fill(RRp(cx - 44, y + 112, 88, 10, 5)); const f = Math.min(1, n / need); if (f > 0) { ctx.fillStyle = on ? '#8a4ad8' : '#ff8a3d'; ctx.fill(RRp(cx - 44, y + 112, 88 * f, 10, 5)); }
+    if (on && !CH[ch].vip && !CH[ch].rare) { const fl = frLv(ch); for (let q = 0; q < 3; q++) { const hp = heartP(cx - 22 + q * 16, y + 116, 6); ctx.fillStyle = q < fl ? '#ff4f7a' : '#e0d2b8'; ctx.fill(hp); ctx.lineWidth = 1.4; ctx.strokeStyle = OLC; ctx.stroke(hp); } }
+    else { ctx.fillStyle = '#e0d2b8'; ctx.fill(RRp(cx - 44, y + 112, 88, 10, 5)); const f = Math.min(1, n / need); if (f > 0) { ctx.fillStyle = on ? '#8a4ad8' : '#ff8a3d'; ctx.fill(RRp(cx - 44, y + 112, 88 * f, 10, 5)); } }
     T(on ? '🔊' : ar(Math.min(n, need)) + '/' + ar(need), cx + 50, y + 117, 10, '#7a4a2a');
     btn(cx - 59, y, 118, 132, () => { if (on) { G.albSel = ch; sfx.talk(CH[ch].f); speak(JOKE[ch], CH[ch].vp); } else { sfx.wrong(); toast('قدّم للشخصية دي ' + ar(need - Math.min(n, need)) + ' مرات كمان عشان تفتح الكارت'); } });
   });
   T(got === ALB.length ? '🏆 كملت الألبوم! العربية الدهب والشريط السري بقوا بتوعك' : 'كمّل الألبوم تفتح العربية الدهب وشريط سري', 480, 504, 14, '#5b3cc4');
   bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'title'; }, '#8a5a3c', 18);
+  bigBtn(182, 30, 130, 38, '📒 الوصفات', () => { G.state = 'recipes'; }, '#2e9d4a', 15);
   if (G.albSel) {
     const ch = G.albSel; BT = BT.filter(b => b.id === 'hud'); dim(0.6); panel(250, 60, 460, 420);
     ctx.save(); ctx.beginPath(); ctx.rect(262, 72, 436, 260); ctx.clip(); glow(480, 200, 160, CH[ch].vip ? '#ffd86b' : '#fff1a0', 0.6); albPortrait(ch, 480, 330, 0.8, true); ctx.restore();
     T(CH[ch].n, 480, 350, 26, '#d7263d', FD);
     wrapT('"' + JOKE[ch] + '"', 480, 384, 380, 17, '#3a1d0e', 24);
-    T('خدمته ' + ar(S.served[ch] || 0) + ' مرة', 480, 436, 13, '#7a4a2a');
+    T('خدمته ' + ar(S.served[ch] || 0) + ' مرة' + (CH[ch].vip || CH[ch].rare ? '' : '   •   ❤️ ' + FRN[frLv(ch)]), 480, 436, 13, '#7a4a2a');
     btn(0, 0, W, H, () => { G.albSel = null; sfx.tap(); });
     bigBtn(560, 410, 120, 44, '🔊 اسمع', () => { sfx.talk(CH[ch].f); speak(JOKE[ch], CH[ch].vp); }, '#2e7fb8', 16);
   }
+}
+function drawRecipes(t) {
+  dim(0.75); panel(40, 24, 880, 496);
+  const ks = Object.keys(REC), got = ks.filter(k => S.rec[k]).length;
+  R(350, 6, 260, 48, 16, '#2e9d4a', { lw: 3.5 }); T('📒 كتاب الوصفات', 480, 31, 28, '#fff', FD, 'center', 5, '#0f4a20');
+  T(ar(got) + ' / ' + ar(ks.length), 660, 31, 20, '#2e7d32', FD);
+  ks.forEach((k, i) => {
+    const w = 400, h = 196, x = 490 - (i % 2) * 420, y = 76 + Math.floor(i / 2) * 210, on = !!S.rec[k], ok = recOk(k), P = PROD[k], ix = x + w - 80, tx = x + 128;
+    const p = RRp(x, y, w, h, 14); ctx.fillStyle = on ? '#ffffff' : '#ece0c8'; ctx.fill(p); ctx.lineWidth = on ? 3.5 : 2.5; ctx.strokeStyle = on ? '#2e9d4a' : '#c8b898'; ctx.stroke(p);
+    glow(ix, y + 92, 64, on ? '#fff1a0' : '#d8c8a8', 0.6);
+    if (on) prodIcon(k, ix, y + 136, 1.3); else { E(ix, y + 94, 44, 44, '#5a4a3a', { lw: 3, hl: 0.15, v: false }); T('؟', ix, y + 98, 54, '#ffe9b8', FD); }
+    const nm = on ? P.n : '؟؟؟'; T(nm, tx, y + 34, fit(nm, 220, 20, FD), '#3a1d0e', FD);
+    wrapT(on ? REC[k].how : REC[k].hint, tx, y + 70, 220, 14, on ? '#2e7d32' : '#7a4a2a', 22);
+    const lv = CH[P.ch].n + ' بيدفع فيها الضعف'; T(lv, tx, y + 140, fit(lv, 220, 13), '#8a4ad8');
+    if (!ok) { const nd = '🔒 محتاج ' + P.rec.map(q => PROD[q].n).join(' و') + ' من السوق'; T(nd, tx, y + 170, fit(nd, 220, 12), '#c62828'); }
+    else T(on ? ar(P.price) + ' ج' : 'جرّبها على اللوح!', tx, y + 170, on ? 16 : 13, on ? '#2e9d4a' : '#2e7fb8', on ? FD : FB);
+  });
+  T('الوصفة اللي تكتشفها بتدخل المنيو والزباين بيطلبوها', 480, 504, 14, '#2e7d32');
+  bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'album'; }, '#8a5a3c', 18);
 }
 function drawTitles(t) {
   dim(0.75); panel(40, 24, 880, 496);
@@ -2663,7 +2829,7 @@ function drawStations(t) {
   sprite(sl('spit'), stS('spit') + '|' + tb(10, 0.1), 8, 104, 130, 200, () => drawSpit(t));
   sprite(sl('radio'), (musicLive && musV > 0 ? tb(10, 0.6) : 'off') + S.tape, 136, 34, 124, 94, () => drawRadio(t));
   sprite(sl('bread'), stS('bread'), 26, 410, 128, 112, drawBread);
-  if (b.st === 'wrap') drawBoard(t); else sprite(sl('board'), b.st + b.fill + !!G.tut + b.sauce, 146, 418, 180, 96, () => drawBoard(t));
+  if (b.st === 'wrap') drawBoard(t); else sprite(sl('board'), b.st + b.fill + !!G.tut + b.sauce + b.mix, 146, 418, 180, 96, () => drawBoard(t));
   if (has('shawqyIce')) sprite(sl('frz'), stS('freezer') + (G.drag && G.drag.key === 'src:freezer'), 10, 290, 136, 124, () => drawFreezer(t));
   const dn = diaaNeeds(); sprite(sl('kiosk'), (dn ? dn.need.join() + tb(12) : '-') + (G.drag ? G.drag.key : '') + G.sea, 858, 56, 102, 106, () => drawKiosk(t));
   for (const [k, col, ball, lb] of [['gfal', '#5f8f2a', null, 'فلافل خضرا'], ['gtray', '#9a917e', falBall, 'فلافل السكرتح']]) if (stationVisible(k)) { const r = ST[k]; sprite(sl(k), stS(k), r.x - 4, r.y - 14, r.w + 22, r.h + 38, () => drawTray(k, col, ball, lb)); }
@@ -2690,7 +2856,7 @@ function frame(now) {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#15100c'; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(bg, ox * SC * DPR, oy * SC * DPR);
     ctx.setTransform(SC * DPR, 0, 0, SC * DPR, ox * SC * DPR, oy * SC * DPR);
-    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } drawHUD(G.t); drawFX(G.t); }
+    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } drawHUD(G.t); drawFX(G.t); }
     else {
       drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
       if (G.state === 'play') { drawCustomers(G.t); if (G.raid) drawRaid(G.t); }
