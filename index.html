@@ -1,4 +1,6 @@
+<meta charset="utf-8">
 <title>عربية الرحمة</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lalezar&family=Cairo:wght@600;800&display=swap">
@@ -988,7 +990,7 @@ function speak(text, pitch) { if (!voiceOn || sfxV <= 0 || !arVoice) return; try
 const KEY = 'rahma-cart-v4';
 const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store: 0, ah: 0 }, menu: {}, help: {}, tapes: { rahma: 1 }, tape: 'rahma', tut: 0, stars: {}, best: 0, diff: null, seenDiaa: 0,
   extras: {}, served: {}, album: {}, cos: { aw: 'red', lights: 0, neon: 0, gold: 0 }, cosOwn: { red: 1 }, name: '', story: 0, fin: 0, life: 0, chBest: null, meal: 0, rivalW: 0,
-  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0, wed: 0, qst: 0, ghost: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null, quest: {}, nightSeen: 0 });
+  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0, wed: 0, qst: 0, ghost: 0, days: 0, bestDay: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null, quest: {}, nightSeen: 0, strk: { k: '', n: 0, b: 0 }, snaps: [], sold: {}, codes: {}, diaaNext: 0 });
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
@@ -1170,7 +1172,8 @@ function planDay(d) {
 const NEWS = ['العاعاعوط كسب مسابقة أعلى صرخة للسنة التالتة على التوالي', 'الحنكليس فتح قناة يوتيوب عن الحنكلسة وعنده ٣ مشتركين', 'أبو الزول بيقول الأهرامات اتبنت عشان يبقى ليه مكان يقعد فيه',
   'السكرتح اتمنع من البحر بعد ما عض موجة', 'الدولازليق بيحاول يطير بقاله ١٢ سنة ولسه مكمّل', 'فلوبا رجع من فرنسا وبيقول بونجور لكل حاجة حتى الفول',
   'عباس رفع عربية بإيد واحدة، وبعدين رجّعها مكانها عشان صاحبها زعل', 'الهصلاص هصلص في الجنينة ومحدش فهم يعني إيه', 'أبو حسيبة نام في الكشك ٧ ساعات وصحي يسأل: هو أنا نمت؟',
-  'الزربوطان بيدوّر على شغل، بس بعد القيلولة'];
+  'الزربوطان بيدوّر على شغل، بس بعد القيلولة', 'إشاعة: اللي يكتب "الرحمة" على يافطة النيون بتنزله فلوس من السما 💸',
+  'أبو حسيبة بيقول: اللي يكتب اسمي على اليافطة هيلاقي هدية في المخزن 📦', 'د. ضياء بيحب يشوف اسمه منوّر على اليافطات 🐔', 'العاعاعوط بيصرخ: اكتبوا اسمي على اليافطة! حد يسمعني!', 'الزربوطان مخبّي شريط سري، وبيقول اللي يكتب اسمه هياخده'];
 function newsHint(d, pl) {
   const legend = d % 7 === 0, sea = !legend && seasonOf(d), A = AREAS.reduce((a, r, i) => d >= r.from ? i : a, 0);
   if (A !== areaI()) return 'بيقولوا العربية هتتنقل ' + AREAS[A].n + ' بكره 📍';
@@ -1231,7 +1234,7 @@ function updWheel(dt) {
   if (w.v < 0.25) { w.st = 'done'; w.t = 0; w.prize = wheelGive(WHEEL[((Math.round(-w.a / sg) % 8) + 8) % 8]); S.wheel = dayKey(); save(); sfx.fanfare(); burst(480, 250, 40, ['#ffd23f', '#ffffff', '#ff8ae8'], 'star', 1.2); }
 }
 function wheelGive(p) {
-  if (p.k === 'm') { S.money += p.v; return 'كسبت ' + ar(p.v) + ' ج! 🎉'; }
+  if (p.k === 'm') { const v = Math.round(p.v * strMul()); S.money += v; return 'كسبت ' + ar(v) + ' ج! 🎉' + (v > p.v ? ' 🔥' : ''); }
   if (p.k === 'tape') { const ks = Object.keys(TAPES).filter(k => !S.tapes[k] && !TAPES[k].lock); if (ks.length) { const k = pick(ks); S.tapes[k] = 1; return 'كسبت ' + TAPES[k].n + '! 📼'; } }
   if (p.k === 'aw') { const ks = Object.keys(AWN).filter(k => !S.cosOwn[k]); if (ks.length) { const k = pick(ks); S.cosOwn[k] = 1; return 'كسبت ' + AWN[k].n + '! ركّبها من زينة العربية'; } }
   if (p.k === 'crate') { const g = pick(MKG.filter(grpOn)); S.wh[g] = Math.min(WH_MAX, (S.wh[g] || 0) + CRATE); return 'كسبت كرتونة ' + grpName(g) + ' في المخزن 📦'; }
@@ -1387,6 +1390,27 @@ function endlessTick(dt) {
   if (G.overT > 0 && (G.overT -= dt) <= 0) endDay();
 }
 // name for the neon sign: a small HTML box, so the phone keyboard works
+// secret codes typed on the neon sign; the radio drops hints about them
+const CODES = {
+  'رحمه': () => { S.money += 150; S.life += 150; return 'الرحمة الكونية بعتتلك ١٥٠ ج من السما 💸'; },
+  'ابوحسيبه': () => wheelGive({ k: 'crate' }).replace('كسبت', 'أبو حسيبة ادّاك'),
+  'زربوطان': () => wheelGive({ k: 'tape' }),
+  'ضياء': () => { S.diaaNext = 1; return 'د. ضياء هييجي يزورك على فرخته قريب 🐔'; },
+  'عاعاعوط': () => wheelGive({ k: 'aw' }),
+};
+function secretCode(v) {
+  let k = v.replace(/[\s.\-_ـ]/g, '').replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase().replace(/^ال/, '');
+  if (k === 'rahma') k = 'رحمه'; if (k === 'دضياء' || k === 'ضيا') k = 'ضياء';
+  if (!CODES[k]) return false;
+  if (S.codes[k]) { toast('الكود ده استخدمته قبل كده 😉'); return true; }
+  S.codes[k] = 1; const msg = CODES[k](); save(); sfx.fanfare(); burst(480, 270, 40, ['#ffd23f', '#ffffff', '#4ae0ff'], 'star', 1.2); toast('🔑 كود سري! ' + msg, '#9be37a', 3.2); return true;
+}
+// days in a row: the first visit of each day ticks it, and it raises the luck wheel's money prizes
+function streakTick() {
+  const k = dayKey(), y = new Date(Date.now() - 864e5), yk = y.getFullYear() + '-' + (y.getMonth() + 1) + '-' + y.getDate(), s = S.strk;
+  if (s.k === k) return; s.n = s.k === yk ? s.n + 1 : 1; s.k = k; s.b = Math.max(s.b, s.n); save();
+}
+const strMul = () => 1 + 0.2 * clamp(S.strk.n - 1, 0, 5);
 function askName() {
   if (document.getElementById('nm')) return;
   const box = document.createElement('div'); box.id = 'nm';
@@ -1395,7 +1419,7 @@ function askName() {
     + '<input maxlength="12" style="font:800 20px Cairo,Tahoma,sans-serif;padding:8px 12px;border:3px solid #1c120c;border-radius:12px;width:220px;max-width:70vw;text-align:center;direction:rtl;-webkit-user-select:text;user-select:text"><br>'
     + '<button style="margin-top:12px;font:800 18px Cairo,Tahoma,sans-serif;background:#2e9d4a;color:#fff;border:3px solid #1c120c;border-radius:12px;padding:6px 26px">تمام</button></div>';
   document.body.appendChild(box);
-  const inp = box.querySelector('input'), ok = () => { const v = inp.value.trim().slice(0, 12); if (v) { S.name = v; S.cos.neon = 1; save(); } box.remove(); };
+  const inp = box.querySelector('input'), ok = () => { const v = inp.value.trim().slice(0, 12); if (v && !secretCode(v)) { S.name = v; S.cos.neon = 1; save(); } box.remove(); };
   inp.value = S.name || ''; setTimeout(() => inp.focus(), 50);
   box.querySelector('button').onclick = ok; inp.onkeydown = e => { if (e.key === 'Enter') ok(); };
   box.addEventListener('pointerdown', e => { if (e.target === box) box.remove(); });
@@ -1418,7 +1442,7 @@ function newDay() {
   G = { state: 'intro', t: G.t, time: DAYLEN, dayT: 0, slots: [null, null, null, null], spawnT: 1.2, earned: 0, spent: 0, happy: 0, angry: 0, perfect: 0,
     combo: 0, bestCombo: 0, comboT: 0, parts: [], pops: [], coins: [], toast: null, bird: null, walkers: G.walkers || [], walkT: 1,
     birdAt: (S.diff === 'hard' && S.day >= 2) || (S.diff === 'med' && S.day >= 3) ? grnd(25, 60) : -1,
-    diaaAt: !sea && !pl.night && S.day >= 2 && (grand() < 0.3 || (S.day >= 3 && !S.seenDiaa)) ? grnd(20, 50) : -1,
+    diaaAt: !sea && !pl.night && S.day >= 2 && (S.diaaNext || grand() < 0.3 || (S.day >= 3 && !S.seenDiaa)) ? grnd(20, 50) : -1,
     vipLeft: legend ? 0 : S.day >= 2 ? 1 + (S.day >= 4 ? 1 : 0) : 0, flash: 0, flashC: '#fff', shake: 0, press: {}, introT: 0, endT: 0, lastTick: 99,
     board: { st: 'empty', fill: null, wrapT: 0 }, taps: [-1, -1, -1, -1], fry: -1, kettle: -1, items: {}, born: {}, drag: null, sel: null, missed: {},
     stock: fullStock(), ah: { st: 'sit', t: 0, x: AHX, y: AHY, q: [], tgt: null, say: null, sayT: 0, warned: {} },
@@ -1533,7 +1557,7 @@ function complete(c) {
   const rp = c.order.find(o => PROD[o.p].rec), fp = c.order.find(o => PROD[o.p].ch === c.ch);
   if (G.revs) G.revs.push({ ch: c.ch, k: CH[c.ch].vip ? 'vip' : c.wed ? 'wed' : c.quest ? 'qst' : c.ghost ? 'ghost' : c.dlv ? 'dlv' : c.noteOk ? 'note' : c.hagOk ? 'hag' : rp ? 'rec' : fav ? 'fav' : f > 0.66 ? 'fast' : 'ok', p: (rp || fp || c.order[0]).p });
   if (S.day >= 3) G.dirt = Math.min(1, (G.dirt || 0) + 0.035);
-  S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
+  for (const o of c.order) S.sold[o.p] = (S.sold[o.p] || 0) + (o.n || 1); S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
   befriend(c, sx); G.lastCh = c.ch;
   if (c.quest && !CHAL) { S.quest[c.ch] = 1; S.st.qst++; const r = 50 + 10 * S.day; S.money += r; S.life += r; G.earned += r; addPop(sx, 262, '📜 مكافأة الحكاية +' + ar(r) + ' ج', '#ffe9b8', 22, 2); toast('📜 ' + CH[c.ch].n + ': ' + QST[c.ch][1], '#ffe9b8', 4.2); moment(5, c.ch, 'حكاية!', QST[c.ch][1]); }
   if (c.wed) { const nq = 20 + S.day * 4; S.money += nq; S.life += nq; G.earned += nq; addPop(sx, 262, '💸 النقطة +' + ar(nq) + ' ج', '#ffd0ea', 24, 2); sfx.zag(); burst(sx, 150, 30, ['#ff8ae8', '#ffffff', '#ffd23f'], 'heart', 1); moment(6, c.ch, 'زغروطة!', 'أحلى فرح في الحارة، وأكلك كان نجم الليلة 💍'); }
@@ -1809,7 +1833,7 @@ function update(dt) {
   if (G.state === 'intro') { G.introT += dt; return; }
   if (G.state === 'end') { if (G.endPh === 'rev') { G.revT += dt; revTick(dt); return; } G.endT += dt; sumTick(dt); const st = G.stars || 0; [0.9, 1.4, 1.9].forEach((tt, i) => { if (i < st && G.endT - dt < tt && G.endT >= tt) { sfx.star(i); burst(380 + i * 100, G.endY + 110, 24, ['#ffd23f', '#ffffff', '#ff8a3d'], 'star'); } }); return; }
   if (G.state === 'wheel') { updWheel(dt); return; }
-  if (G.state === 'title' && !OVL && !CHAL && S.day >= 2 && S.tut && S.wheel !== dayKey() && G.t > 1.5) { G.state = 'wheel'; G.whl = { a: 0, v: 0, st: 'idle', t: 0 }; }
+  if (G.state === 'title' && !OVL && !CHAL && S.day >= 2 && S.tut && S.wheel !== dayKey() && G.t > 1.5) { streakTick(); G.state = 'wheel'; G.whl = { a: 0, v: 0, st: 'idle', t: 0 }; }
   if (G.state !== 'play' || G.paused) return;
   G.coins = G.coins.filter(c => { c.t += dt; if (c.t >= c.d) { moneyBounce = 1; sfx.coin(c.k); return false; } return true; });
   if (G.fly) G.fly = G.fly.filter(f => (f.t += dt) < 0.35);
@@ -1860,7 +1884,7 @@ function update(dt) {
     else if ((c.st === 'happy' || c.st === 'angry') && c.t > 1.25) { c.st = 'out'; c.t = 0; sfx.whoosh(); }
     else if (c.st === 'out' && c.t > 0.4) G.slots[i] = null;
   }
-  if (!tut && G.diaaAt > 0 && G.dayT >= G.diaaAt && G.time > 8) { const free = [0, 1, 2, 3].filter(i => !G.slots[i]); if (free.length) { G.diaaAt = -1; const ks = ['cig', 'nut', 'wbr'].sort(() => grand() - 0.5), ord = ks.slice(0, 1 + Math.floor(grand() * 3)); if (ord.length < 3 && grand() < 0.5) ord.push(gpick(owned())); makeCust('diaa', ord, pick(free)); S.seenDiaa = 1; save(); } }
+  if (!tut && G.diaaAt > 0 && G.dayT >= G.diaaAt && G.time > 8) { const free = [0, 1, 2, 3].filter(i => !G.slots[i]); if (free.length) { G.diaaAt = -1; S.diaaNext = 0; const ks = ['cig', 'nut', 'wbr'].sort(() => grand() - 0.5), ord = ks.slice(0, 1 + Math.floor(grand() * 3)); if (ord.length < 3 && grand() < 0.5) ord.push(gpick(owned())); makeCust('diaa', ord, pick(free)); S.seenDiaa = 1; save(); } }
   if (G.diaaHint > 0) G.diaaHint -= dt;
   if (!tut && G.dlvQ && G.dlvQ.length && G.dayT >= G.dlvQ[0] && G.time > 15 && !G.raid) {   // the phone rings and a delivery rider pulls up
     const free = [0, 1, 2, 3].filter(i => !G.slots[i]), busy = G.slots.filter(c => c && (c.st === 'wait' || c.st === 'in')).length;
@@ -1902,6 +1926,8 @@ function endDay() {
   if (G.rival) { G.rivalWin = G.earned - G.spent >= G.rival.e; if (G.rivalWin) { G.rivalB = 20 + S.day * 4; S.money += G.rivalB; S.life += G.rivalB; S.rivalW++; if (G.lastCh) moment(4, G.lastCh, 'غلبته!', 'سكرتاعوط قفل عربيته وروّح يعيط 😂'); } }
   const tg = target(S.day), net = G.earned - G.spent; G.stars = net >= tg * 2 ? 3 : net >= tg * 1.5 ? 2 : net >= tg ? 1 : 0;
   if (!G.moment && G.lastCh) G.moment = { pr: 0, ch: G.lastCh, big: G.stars ? 'تحفة!' : 'معلش!', cap: G.stars ? JOKE[G.lastCh] || 'تسلم إيدك يا معلم!' : 'بكره أحسن إن شاء الله، الرحمة واسعة 🤲' };
+  if (G.moment) { S.snaps.unshift({ d: S.day, m: G.moment }); S.snaps.length = Math.min(S.snaps.length, 24); }
+  S.st.days++; S.st.bestDay = Math.max(S.st.bestDay, net);
   S.stars[S.day] = Math.max(S.stars[S.day] || 0, G.stars); S.best = Math.max(S.best, G.bestCombo); if (G.stars === 3) S.st.s3 = 1;
   if (G.stars) S.day++; save();
   G.revT = 0; G.revShake = 0; if (G.posts && G.posts.length) G.endPh = 'rev'; else startSummary();
@@ -2472,18 +2498,19 @@ function drawComic(x, y, w, h, m, d) {
   const br = 'عربية الرحمة 🛒' + (S.name ? ' • ' + S.name : ''); T(br, x + w - 110, y + h - 20, fit(br, 200, 15, FD), '#7a1010', FD, 'center', 5, '#ffffff');
   ctx.restore(); ctx.lineWidth = 6; ctx.strokeStyle = OLC; ctx.stroke(fr);
 }
-function openSnap() {
+function openSnap(m, d) {
+  if (!m || typeof m !== 'object') { m = G.moment; d = G.dayDone || S.day; } G.snapM = m; G.snapD = d;
   G.snapOpen = 1; G.snapFile = null; sfx.tap();
   try {
     const c = document.createElement('canvas'); c.width = 1176; c.height = 736; const x2 = c.getContext('2d'); x2.scale(2, 2);
-    withCtx(x2, () => drawComic(4, 4, 580, 360, G.moment, G.dayDone || S.day)); G.snapC = c;
+    withCtx(x2, () => drawComic(4, 4, 580, 360, m, d)); G.snapC = c;
     c.toBlob(b => { try { if (b) G.snapFile = new File([b], 'rahma-cart.png', { type: 'image/png' }); } catch (e) { } }, 'image/png');
   } catch (e) { G.snapC = null; }
 }
 function drawSnap() {
   BT = BT.filter(b => b.id === 'hud'); dim(0.75);
   if (G.snapC) { ctx.save(); ctx.translate(480, 238); ctx.rotate(-0.015); ctx.drawImage(G.snapC, -294, -184, 588, 368); ctx.restore(); }
-  else drawComic(190, 58, 580, 360, G.moment, G.dayDone || S.day);
+  else drawComic(190, 58, 580, 360, G.snapM || G.moment, G.snapD || G.dayDone || S.day);
   btn(0, 0, W, H, () => { G.snapOpen = 0; sfx.tap(); });
   bigBtn(500, 440, 240, 56, '📤 شارك اللقطة', () => { UPFN = shareSnap; }, '#2e9d4a', 22);
   bigBtn(220, 444, 200, 50, 'رجوع', () => { G.snapOpen = 0; }, '#8a5a3c', 20);
@@ -2496,7 +2523,7 @@ function shareSnap() {   // runs on pointerup, so phones count it as a tap and a
 }
 function drawWheel(t) {
   const w = G.whl, cx = 480, cy = 266, r = 158, sg = Math.PI / 4;
-  dim(0.72); T('🎡 عجلة الحظ', 480, 46, 34, '#ffd23f', FD, 'center', 6, OLC); T('لفّة ببلاش كل يوم', 480, 80, 15, '#ffe9b8');
+  dim(0.72); T('🎡 عجلة الحظ', 480, 46, 34, '#ffd23f', FD, 'center', 6, OLC); const sk = S.strk.n >= 2 ? '🔥 بقالك ' + ar(S.strk.n) + ' أيام ورا بعض • فلوس العجلة ×' + ar(+strMul().toFixed(1)) : 'لفّة ببلاش كل يوم • تعالى بكره كمان والفلوس تزيد 🔥'; T(sk, 480, 80, fit(sk, 600, 15), '#ffe9b8');
   glow(cx, cy, r + 40, '#ffd86b', 0.35);
   ctx.save(); ctx.translate(cx, cy);
   WHEEL.forEach((p, i) => {
@@ -2965,7 +2992,7 @@ function drawEnd() {
   bigBtn(490, y + h - 84, 260, 60, ok ? 'اليوم ' + ar(S.day) : 'جرّب تاني', () => newDay(), '#e8304a', 24);
   bigBtn(210, y + h - 80, 240, 54, '🛒 السوق', () => { G.state = 'shop'; G.shopFrom = 'end'; G.shopTab = 'menu'; }, deals ? '#2e7fb8' : '#6a8aa8', 22);
   if (G.posts && G.posts.length) { const p = RRp(172, 44, 150, 52, 12); ctx.fillStyle = '#3b5998'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📱 الريفيوهات', 247, 61, 15, '#fff', FD); T('⭐ ' + ar(G.rate) + ' من ٥', 247, 83, 13, '#ffe38a'); btn(172, 44, 150, 52, () => { G.revOpen = 1; sfx.tap(); }); }
-  if (G.moment) { const p = RRp(638, 44, 150, 52, 12); ctx.fillStyle = '#ff8a2a'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📸 لقطة اليوم', 713, 61, 15, '#fff', FD, 'center', 4, '#7a2a00'); T(G.moment.big, 713, 83, fit(G.moment.big, 136, 13), '#fff3d6'); btn(638, 44, 150, 52, openSnap); }
+  if (G.moment) { const p = RRp(638, 44, 150, 52, 12); ctx.fillStyle = '#ff8a2a'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📸 لقطة اليوم', 713, 61, 15, '#fff', FD, 'center', 4, '#7a2a00'); T(G.moment.big, 713, 83, fit(G.moment.big, 136, 13), '#fff3d6'); btn(638, 44, 150, 52, () => openSnap()); }
   ctx.restore(); }
   if (G.revOpen) drawReviews();
   if (G.snapOpen) drawSnap();
@@ -2999,13 +3026,14 @@ function slider(label, y, v, set) {
   btn(x0 - 24, y - 22, x1 - x0 + 48, 44, px => set(clamp((x1 - px) / (x1 - x0), 0, 1)), 'ovl', true);
 }
 function drawSettings(t) {
-  dim(0.75); panel(150, 40, 660, 470);
+  dim(0.75); panel(150, 30, 660, 486);
   R(370, 20, 220, 50, 16, '#8a5a3c', { lw: 3.5 }); T('الإعدادات', 480, 46, 30, '#fff', FD, 'center', 5, '#3a1d0e');
   slider('المؤثرات', 112, sfxV, v => { sfxV = v; applyVol(); saveOpt(); });
   slider('المزيكا', 166, musV, v => { musV = v; applyVol(); saveOpt(); });
   T('الشرايط', 480, 214, 20, '#3a1d0e', FD);
-  Object.keys(TAPES).forEach((k, i) => {
-    const tp = TAPES[k], x = 742 - i * 92, y = 270, own = S.tapes[k], sel = S.tape === k;
+  const tk = Object.keys(TAPES), tsp = Math.min(92, 600 / tk.length);   // centred so every tape stays inside the panel
+  tk.forEach((k, i) => {
+    const tp = TAPES[k], x = 480 + (tk.length - 1) * tsp / 2 - i * tsp, y = 270, own = S.tapes[k], sel = S.tape === k;
     if (sel) { const p = RRp(x - 44, y - 38, 88, 112, 12); ctx.fillStyle = '#e6f6dc'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = '#2e9d4a'; ctx.stroke(p); }
     ctx.save(); if (!own) ctx.globalAlpha = 0.35; cassette(x, y, tp.c, 0.95, sel && musicLive); ctx.restore();
     T(tp.n, x, y + 44, fit(tp.n, 84, 12), '#3a1d0e'); T(own ? (sel ? '♪ شغال' : 'دوس تشغّل') : '🔒 السوق', x, y + 62, 11, own ? '#2e7d32' : '#9a6a4a');
@@ -3013,6 +3041,7 @@ function drawSettings(t) {
   });
   bigBtn(510, 408, 250, 52, 'صوت الزباين: ' + (voiceOn ? 'شغال' : 'مقفول'), () => { voiceOn = !voiceOn; saveOpt(); }, '#2e7fb8', 18, 'ovl');
   bigBtn(200, 408, 250, 52, 'رجوع', () => { OVL = null; }, '#8a5a3c', 22, 'ovl');
+  if (PWA && !standalone()) bigBtn(330, 464, 300, 38, '📲 نزّلها على الموبايل كأبلكيشن', () => { UPFN = installApp; }, '#5b3cc4', 16, 'ovl');
 }
 function wrapT(s, x, y, maxW, size, c, lh, font = FB) {
   ctx.font = (font === FB ? '800 ' : '') + size + 'px ' + font; const lines = []; let cur = '';
@@ -3046,6 +3075,7 @@ function drawAlbum(t) {
   T(got === ALB.length ? '🏆 كملت الألبوم! العربية الدهب والشريط السري بقوا بتوعك' : 'كمّل الألبوم تفتح العربية الدهب وشريط سري', 480, 504, 14, '#5b3cc4');
   bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'title'; }, '#8a5a3c', 18);
   bigBtn(182, 30, 130, 38, '📒 الوصفات', () => { G.state = 'recipes'; }, '#2e9d4a', 15);
+  bigBtn(60, 480, 150, 34, '📸 لقطاتي', () => { G.state = 'snaps'; G.snapPg = 0; G.snapOpen = 0; }, '#ff8a2a', 15);
   if (G.albSel) {
     const ch = G.albSel; BT = BT.filter(b => b.id === 'hud'); dim(0.6); panel(250, 60, 460, 420);
     ctx.save(); ctx.beginPath(); ctx.rect(262, 72, 436, 260); ctx.clip(); glow(480, 200, 160, CH[ch].vip ? '#ffd86b' : '#fff1a0', 0.6); albPortrait(ch, 480, 330, 0.8, true); ctx.restore();
@@ -3076,6 +3106,47 @@ function drawRecipes(t) {
   T('الوصفة اللي تكتشفها بتدخل المنيو والزباين بيطلبوها', 480, 504, 14, '#2e7d32');
   bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'album'; }, '#8a5a3c', 18);
 }
+function drawStats(t) {
+  dim(0.75); panel(40, 16, 880, 510);
+  R(340, 6, 280, 48, 16, '#2e7fb8', { lw: 3.5 }); T('📊 إحصائياتي', 480, 31, 28, '#fff', FD, 'center', 5, '#0e3a5a');
+  const fav = Object.keys(S.served).filter(k => CH[k]).sort((a, b) => S.served[b] - S.served[a])[0], top = Object.keys(S.sold).filter(k => PROD[k]).sort((a, b) => S.sold[b] - S.sold[a])[0];
+  const L = [['📅', Math.max(S.st.days, S.day - 1), 'يوم شغل'], ['👥', S.st.cust, 'زبون خدمته'], ['💰', S.life, 'جنيه كسبتهم'], ['📈', S.st.bestDay || '—', 'أحسن يوم (ج)'],
+    ['⭐', Object.values(S.stars).reduce((a, b) => a + b, 0), 'نجمة'], ['⚡', S.best, 'أعلى كومبو'], ['🔥', S.strk.b, 'أطول أيام ورا بعض'], ['🕵️', S.st.thief, 'نصاب مسكته'],
+    ['🛵', S.st.dlv, 'توصيلة'], ['🍱', S.st.meals, 'وجبة كومبو'], ['💍', S.st.wed, 'فرح'], ['👻', S.st.ghost, 'زبون نص الليل'],
+    ['🌟', S.st.leg, 'يوم أسطوري'], ['📜', S.st.qst, 'حكاية خلصتها'], [fav ? '' : '😍', fav ? CH[fav].n : '—', 'زبونك المفضل'], [top ? '' : '🥙', top ? PROD[top].n : '—', 'أكتر حاجة بتتباع']];
+  L.forEach(([ic, v, lb], i) => {
+    const col = i % 4, row = Math.floor(i / 4), x = 700 - col * 212, y = 66 + row * 108, w = 200, h = 100, p = RRp(x, y, w, h, 12);
+    ctx.fillStyle = '#ffffff'; ctx.fill(p); ctx.lineWidth = 2.5; ctx.strokeStyle = '#9ac4e6'; ctx.stroke(p);
+    if (i === 14 && fav) { ctx.save(); ctx.clip(p); albPortrait(fav, x + w - 36, y + 104, 0.24, true); ctx.restore(); }
+    else if (i === 15 && top) prodIcon(top, x + w - 36, y + 72, 0.42);
+    else T(ic, x + w - 32, y + 40, 28, '#000');
+    const vs = typeof v === 'number' ? ar(v) : v; T(vs, x + w / 2 - 22, y + 40, fit(vs, 128, typeof v === 'number' ? 30 : 18, FD), '#1c4a7a', FD);
+    T(lb, x + w / 2 - 22, y + 76, fit(lb, 140, 13), '#7a4a2a');
+  });
+  T('الأرقام دي من أول ما بدأت تلعب', 480, 504, 14, '#2e7fb8');
+  bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'titles'; }, '#8a5a3c', 18);
+}
+function drawSnaps(t) {
+  dim(0.75); panel(40, 16, 880, 510);
+  R(340, 6, 280, 48, 16, '#ff8a2a', { lw: 3.5 }); T('📸 لقطاتي', 480, 31, 28, '#fff', FD, 'center', 5, '#7a2a00');
+  const L = S.snaps, np = Math.max(1, Math.ceil(L.length / 6)), pg = Math.min(G.snapPg || 0, np - 1);
+  if (!L.length) T('لسه مفيش لقطات، كل يوم بتلعبه بيتصوّر هنا 📸', 480, 270, 20, '#7a4a2a', FD);
+  L.slice(pg * 6, pg * 6 + 6).forEach((s, j) => {
+    const i = pg * 6 + j, col = j % 3, row = Math.floor(j / 3), x = 618 - col * 278, y = 74 + row * 192, w = 262, h = 163;
+    ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate((hash(i * 7 + s.d) - 0.5) * 0.05);
+    sprite(sl('snp' + j), i + '|' + s.d + s.m.ch + s.m.big + S.name, -w / 2 - 6, -h / 2 - 6, w + 12, h + 12, () => { ctx.translate(-w / 2, -h / 2); ctx.scale(w / 580, h / 360); drawComic(0, 0, 580, 360, s.m, s.d); });
+    ctx.restore();
+    btn(x, y, w, h, () => openSnap(s.m, s.d));
+  });
+  if (np > 1) {
+    T(ar(pg + 1) + ' / ' + ar(np), 480, 461, 18, '#a8743e', FD);
+    if (pg < np - 1) bigBtn(280, 440, 130, 40, 'الأقدم ◀', () => { G.snapPg = pg + 1; sfx.tap(); }, '#2e7fb8', 16);
+    if (pg > 0) bigBtn(550, 440, 130, 40, '▶ الأحدث', () => { G.snapPg = pg - 1; sfx.tap(); }, '#2e7fb8', 16);
+  }
+  T('آخر ٢٤ يوم بيتحفظوا هنا • دوس على اللقطة تكبّرها وتشاركها', 480, 506, 13, '#a8743e');
+  bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'album'; G.snapOpen = 0; }, '#8a5a3c', 18);
+  if (G.snapOpen) drawSnap();
+}
 function drawTitles(t) {
   dim(0.75); panel(40, 16, 880, 510);
   const got = ACH.filter(a => S.ach[a.k]).length;
@@ -3093,6 +3164,7 @@ function drawTitles(t) {
   });
   T('اللقب اللي تختاره بيظهر تحت اسمك على يافطة النيون', 480, 504, 14, '#a86a00');
   bigBtn(60, 30, 110, 42, 'رجوع', () => { G.state = 'title'; }, '#8a5a3c', 18);
+  bigBtn(182, 30, 150, 42, '📊 الإحصائيات', () => { G.state = 'stats'; }, '#2e7fb8', 16);
 }
 function drawStory(t) {
   const ln = STORY[G.storyQ[0]][G.storyL], ah = ln[0] === 'ah', k = pop(G.storyT, 0.3);
@@ -3166,7 +3238,7 @@ function frame(now) {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#15100c'; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(bg, ox * SC * DPR, oy * SC * DPR);
     ctx.setTransform(SC * DPR, 0, 0, SC * DPR, ox * SC * DPR, oy * SC * DPR);
-    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes' || G.state === 'wheel') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } if (G.state === 'wheel') { BT = BT.filter(b => b.id === 'hud'); drawWheel(G.t); } drawHUD(G.t); drawFX(G.t); }
+    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes' || G.state === 'wheel' || G.state === 'stats' || G.state === 'snaps') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } if (G.state === 'wheel') { BT = BT.filter(b => b.id === 'hud'); drawWheel(G.t); } if (G.state === 'stats') { BT = BT.filter(b => b.id === 'hud'); drawStats(G.t); } if (G.state === 'snaps') { BT = BT.filter(b => b.id === 'hud'); drawSnaps(G.t); } drawHUD(G.t); drawFX(G.t); }
     else {
       if (G.night) drawNight(G.t); drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
       if (G.state === 'play') { drawCustomers(G.t); if (G.raid) drawRaid(G.t); }
@@ -3195,6 +3267,33 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// installable app: only on the game's own site (GitHub Pages), never inside the Claude viewer
+const PWA = /github\.io$/.test(location.hostname) && !window.claude;
+let instEv = null;
+const standalone = () => { try { return matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true; } catch (e) { return false; } };
+if (PWA) {
+  try {
+    const add = (t, a) => { const e = document.createElement(t); for (const k in a) e.setAttribute(k, a[k]); document.head.appendChild(e); };
+    add('link', { rel: 'manifest', href: 'manifest.webmanifest' }); add('link', { rel: 'apple-touch-icon', href: 'icon-180.png' }); add('meta', { name: 'theme-color', content: '#15100c' });
+    add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }); add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
+    add('meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black-translucent' }); add('meta', { name: 'apple-mobile-web-app-title', content: 'عربية الرحمة' });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => { });
+  } catch (e) { }
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); instEv = e; });
+}
+function installApp() {
+  if (instEv) { const e = instEv; instEv = null; e.prompt(); e.userChoice.then(r => { if (r.outcome === 'accepted') toast('اتنزلت! هتلاقيها على الشاشة الرئيسية 🎉', '#9be37a'); }).catch(() => { }); return; }
+  infoBox(IOS ? 'من سفاري دوس على زرار المشاركة ⬆️ تحت، وبعدين اختار <b>إضافة إلى الشاشة الرئيسية</b> (Add to Home Screen)' : 'من قايمة المتصفح ⋮ فوق اختار <b>تثبيت التطبيق</b> (Install app) أو Add to Home screen');
+}
+function infoBox(html) {
+  if (document.getElementById('nm')) return;
+  const box = document.createElement('div'); box.id = 'nm';
+  box.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,8,2,.7);z-index:5';
+  box.innerHTML = '<div style="background:#fff3d6;border:4px solid #1c120c;border-radius:18px;padding:18px 22px;text-align:center;direction:rtl;max-width:80vw;font:800 17px/1.7 Cairo,Tahoma,sans-serif;color:#3a1d0e">📲 ' + html
+    + '<br><button style="margin-top:12px;font:800 18px Cairo,Tahoma,sans-serif;background:#2e9d4a;color:#fff;border:3px solid #1c120c;border-radius:12px;padding:6px 26px">تمام</button></div>';
+  document.body.appendChild(box);
+  box.querySelector('button').onclick = () => box.remove(); box.addEventListener('pointerdown', e => { if (e.target === box) box.remove(); });
+}
 document.addEventListener('visibilitychange', () => {
   if (!AC) return;
   if (document.hidden) { try { AC.suspend(); } catch (e) { } try { speechSynthesis.cancel(); } catch (e) { } if (IOS) acReset = true; if (G.state === 'play') G.paused = true; }
