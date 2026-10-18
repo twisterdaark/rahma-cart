@@ -7,7 +7,7 @@ let S = fresh(), saved = null, tutGo = 0;   // tutGo: the tutorial was asked for
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
 function save() { if (CHAL) return; S.svT = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } try { if (CLOUD.user) cloudPush(false); } catch (e) { } }
-try { const o = JSON.parse(localStorage.getItem(KEY + '-opt') || 'null'); if (o) { sfxV = o.sv ?? 0.8; musV = o.mv ?? 0.6; voiceOn = o.vo ?? true; } } catch (e) { }
+try { const o = JSON.parse(localStorage.getItem(KEY + '-opt') || 'null'); if (o) { sfxV = o.sv ?? 0.7; musV = o.mv ?? 0.5; voiceOn = o.vo ?? true; } } catch (e) { }
 function saveOpt() { try { localStorage.setItem(KEY + '-opt', JSON.stringify({ sv: sfxV, mv: musV, vo: voiceOn, lang: LANG })); } catch (e) { } }
 function setLang(l) { LANG = l; ENG = l === 'en'; TRC.clear(); saveOpt(); bgDirty = true; for (const k in SL) SL[k].sig = ''; document.title = ENG ? 'Rahma Cart' : 'عربية الرحمة'; }
 if (ENG) document.title = 'Rahma Cart';

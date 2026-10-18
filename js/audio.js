@@ -1,9 +1,9 @@
 // ---------- audio ----------
-let AC = null, master = null, sfxG = null, musG = null, sfxV = 0.8, musV = 0.6, voiceOn = true;
+let AC = null, master = null, sfxG = null, musG = null, sfxV = 0.7, musV = 0.5, voiceOn = true;
 let acReset = false;   // iOS can leave the audio "interrupted" after switching apps; the next tap builds a fresh one
 function ac() {
   if (AC && acReset) { acReset = false; const old = AC; AC = null; nbuf = null; mNext = 0; try { old.close(); } catch (e) { } }
-  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.85; const comp = AC.createDynamicsCompressor(); master.connect(comp); comp.connect(AC.destination); sfxG = AC.createGain(); musG = AC.createGain(); sfxG.connect(master); musG.connect(master); applyVol(); } catch (e) { AC = null; } }
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.85; const comp = AC.createDynamicsCompressor(); const out = AC.createGain(); out.gain.value = 0.6; master.connect(comp); comp.connect(out); out.connect(AC.destination); sfxG = AC.createGain(); musG = AC.createGain(); sfxG.connect(master); musG.connect(master); applyVol(); } catch (e) { AC = null; } }
   if (AC && AC.state !== 'running') { try { const p = AC.resume(); if (p && p.catch) p.catch(() => { }); } catch (e) { } }
 }
 function applyVol() { if (sfxG) sfxG.gain.value = sfxV; if (musG) musG.gain.value = musV * 0.9; }

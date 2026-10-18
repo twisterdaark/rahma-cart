@@ -15,7 +15,7 @@
 <script>
 // The game is split into parts (js/*.js) so an update only downloads what changed; they run together as one piece.
 (() => {
-  const P = [["boot","d948c81a71"],["en","6acf5c615f"],["core","b076705c33"],["faces","f9b3aa5723"],["chars","838c8d205c"],["products","41bcfc8aa3"],["audio","6993f18fdd"],["state","d5fdfa3a7e"],["run","f533d8e884"],["bg","0e3c7dd5a6"],["scene","2a6835ab3d"],["album","e232654209"],["main","dc2133ac8c"]];
+  const P = [["boot","d948c81a71"],["en","6acf5c615f"],["core","b076705c33"],["faces","f9b3aa5723"],["chars","838c8d205c"],["products","41bcfc8aa3"],["audio","114cb81302"],["state","9881329c43"],["run","376cb9f06d"],["bg","0e3c7dd5a6"],["scene","c61bb2d77e"],["album","e232654209"],["main","dc2133ac8c"]];
   Promise.all(P.map(([f, v]) => fetch('js/' + f + '.js?v=' + v).then(r => { if (!r.ok) throw new Error(f + ' ' + r.status); return r.text(); })))
     .then(t => { const s = document.createElement('script'); s.textContent = '(() => {\n' + t.join('') + '})();'; document.body.appendChild(s); })
     .catch(e => { console.error(e); const p = document.createElement('p'); p.style.cssText = 'position:fixed;inset:40% 0 auto;color:#ffe9b8;font:800 20px Cairo,Tahoma,sans-serif;text-align:center;direction:rtl';

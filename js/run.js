@@ -273,7 +273,7 @@ function ahTap() {
 }
 function nextTape() {
   const ks = Object.keys(TAPES).filter(k => S.tapes[k]); S.tape = ks[(ks.indexOf(S.tape) + 1) % ks.length]; save();
-  if (musV <= 0) { musV = 0.6; applyVol(); saveOpt(); }
+  if (musV <= 0) { musV = 0.5; applyVol(); saveOpt(); }
   toast('📼 ' + TAPES[S.tape].n, '#fff3d6'); sfx.box();
 }
 function stationVisible(k) {

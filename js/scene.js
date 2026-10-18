@@ -797,8 +797,8 @@ function drawTitle(t) {
   T('عربية الرحمة', 0, 5, 52, '#7a1010', FD); T('عربية الرحمة', 0, 0, 52, '#ffd23f', FD, 'center', 9, OLC); ctx.restore();
   T('أكل ومشاريب على شكل مخلوقات عالم الرحمة', 480, 384, 14, '#3a1d0e');
   const cont = saved && S.day > 1;
-  bigBtn(355, 398, 250, 54, cont ? 'كمّل اليوم ' + ar(S.day) : 'العب', () => { saved = null; if (!S.diff) G.state = 'diff'; else newDay(); });
-  pill(188, 322, 124, 30, '🎚 ' + (S.diff ? DIFFS[S.diff].n : 'المستوى'), () => { G.state = 'diff'; });
+  bigBtn(355, 398, 250, 54, cont ? 'كمّل اليوم ' + ar(S.day) : 'العب', () => { saved = null; if (!S.diff) { G.state = 'diff'; G.diffBack = 0; } else newDay(); });
+  pill(188, 322, 124, 30, '🎚 ' + (S.diff ? DIFFS[S.diff].n : 'المستوى'), () => { G.state = 'diff'; G.diffBack = 1; });
   const deals = shopDeals(); pill(622, 405, 146, 40, '🛒 السوق', () => openShop(), deals ? '#2e7fb8' : '#6a8aa8', '#ffffff');
   if (deals) { E(760, 405, 12, 12, '#e8303a', { lw: 2 }); T(ar(Math.min(deals, 9)), 760, 406, 13, '#fff', FD); }
   if (cont) pill(648, 322, 124, 30, '↺ ابدأ من الأول', () => {
@@ -807,7 +807,7 @@ function drawTitle(t) {
   }, '#f6ece0', '#9a5a3a');
   [['📖 الألبوم', () => { G.state = 'album'; G.albSel = null; }], ['🏅 الألقاب', () => { G.state = 'titles'; }], ['🏆 تحدي اليوم', () => startChallenge()],
     [(S.fin ? '' : '🔒 ') + '♾ لا نهائي', () => { if (S.fin) startEndless(); else toast('بيفتح لما تسدد دين أبو حسيبة 😼'); }],
-    ['💡 طريقة اللعب', () => { S.tut = 0; tutGo = 1; saved = null; if (!S.diff) G.state = 'diff'; else newDay(); }]].forEach(([l, f], i) => pill(662 - i * 118, 466, 108, 38, l, f));
+    ['💡 طريقة اللعب', () => { S.tut = 0; tutGo = 1; saved = null; if (!S.diff) { G.state = 'diff'; G.diffBack = 0; } else newDay(); }]].forEach(([l, f], i) => pill(662 - i * 118, 466, 108, 38, l, f));
   if (VS && !CHAL) { const vt = '🥊 ' + (VS.n || 'صاحبك') + ' عمل ' + ar(VS.s) + ' ج في التحدي! تقدر تغلبه؟', p = RRp(290, 254, 380, 42, 14); ctx.fillStyle = '#c62828'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = OLC; ctx.stroke(p); T(vt, 480, 276, fit(vt, 360, 16, FD), '#fff', FD, 'center', 4, '#5a1010'); btn(290, 254, 380, 42, () => { sfx.tap(); startChallenge(VS.key); }); }
 }
 // two glass cases on the home screen, one each side of the title card, for the figures you own; tap a figure and it hops
@@ -846,7 +846,7 @@ function drawDiff(t) {
     T(d.d, x, y + 232, fit(d.d, w - 24, 15), '#3a1d0e');
     const hp = heartP(x, y + 270, 12); ctx.fillStyle = '#e8303a'; ctx.fill(hp); ctx.lineWidth = 2; ctx.strokeStyle = OLC; ctx.stroke(hp);
     T(k === 'easy' ? '∞' : k === 'med' ? 'صبر طويل' : 'صبر قصير', x + (k === 'easy' ? 0 : 0), y + 268 + (k === 'easy' ? 0 : 26), k === 'easy' ? 13 : 12, k === 'easy' ? '#fff' : '#7a4a2a');
-    btn(x - w / 2, y, w, h, () => { S.diff = k; save(); sfx.tap(); burst(x, y + 100, 18, ['#ffd23f', '#ffffff', d.c], 'star', 0.6); setTimeout(() => newDay(), 250); });
+    btn(x - w / 2, y, w, h, () => { S.diff = k; save(); sfx.tap(); burst(x, y + 100, 18, ['#ffd23f', '#ffffff', d.c], 'star', 0.6); if (G.diffBack) { G.diffBack = 0; setTimeout(() => { G.state = 'title'; }, 250); } else setTimeout(() => newDay(), 250); });
   });
 }
 function drawIntro() {
@@ -1039,7 +1039,7 @@ function drawShop(t) {
     cards.forEach((o, i) => shopCard(i, o));
   }
   bigBtn(240, 452, 200, 48, 'رجوع', () => { G.state = G.shopFrom || 'intro'; }, '#8a5a3c', 22);
-  bigBtn(500, 449, 260, 52, 'ابدأ اليوم ' + ar(S.day), () => { if (G.shopFrom !== 'intro') { saved = null; if (!S.diff) { G.state = 'diff'; return; } newDay(); if (G.state !== 'intro' || G.tutQ) return; } startPlay(); }, '#e8304a', 24);
+  bigBtn(500, 449, 260, 52, 'ابدأ اليوم ' + ar(S.day), () => { if (G.shopFrom !== 'intro') { saved = null; if (!S.diff) { G.state = 'diff'; G.diffBack = 0; return; } newDay(); if (G.state !== 'intro' || G.tutQ) return; } startPlay(); }, '#e8304a', 24);
 }
 function drawEnd() {
   if (CHAL) return drawChalEnd();
@@ -1120,7 +1120,7 @@ function drawSettings(t) {
     if (sel) { const p = RRp(x - 44, y - 38, 88, 112, 12); ctx.fillStyle = '#e6f6dc'; ctx.fill(p); ctx.lineWidth = 3; ctx.strokeStyle = '#2e9d4a'; ctx.stroke(p); }
     ctx.save(); if (!own) ctx.globalAlpha = 0.35; cassette(x, y, tp.c, 0.95, sel && musicLive); ctx.restore();
     T(tp.n, x, y + 44, fit(tp.n, 80, 12), '#3a1d0e'); T(own ? (sel ? '♪ شغال' : 'دوس تشغّل') : '🔒 السوق', x, y + 62, 11, own ? '#2e7d32' : '#9a6a4a');
-    if (own) btn(x - 47, y - 38, 94, 112, () => { S.tape = k; save(); sfx.tap(); if (musV <= 0) { musV = 0.6; applyVol(); saveOpt(); } }, 'ovl');
+    if (own) btn(x - 47, y - 38, 94, 112, () => { S.tape = k; save(); sfx.tap(); if (musV <= 0) { musV = 0.5; applyVol(); saveOpt(); } }, 'ovl');
   });
   const inst = PWA && !standalone();
   pill(inst ? 500 : 345, 404, 270, 38, (voiceOn ? '🔊' : '🔇') + ' صوت الزباين: ' + (voiceOn ? 'شغال' : 'مقفول'), () => { voiceOn = !voiceOn; saveOpt(); }, voiceOn ? '#dcecf8' : '#ece4dc', '#1e4a7a', 'ovl');
