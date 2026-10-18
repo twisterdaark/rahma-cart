@@ -888,6 +888,8 @@ const sfx = {
   power() { tone(220, 0.6, 'sawtooth', 0.06, 0, 0.25, 900); noise(0.2, 0.06, 0, 2000); },
   siren() { for (let i = 0; i < 4; i++) tone(i % 2 ? 660 : 880, 0.22, 'square', 0.035, i * 0.22, 0, 2000); },
   phone() { for (let r = 0; r < 2; r++) for (let i = 0; i < 6; i++) tone(i % 2 ? 1350 : 1650, 0.08, 'square', 0.04, r * 0.7 + i * 0.09, 0, 3000); },
+  radio() { [0, 4, 7, 12].forEach((s, i) => tone(660 * Math.pow(2, s / 12), 0.1, 'square', 0.03, i * 0.09, 0, 2200)); noise(0.35, 0.02, 0.4, 4000); },
+  wipe() { noise(0.12, 0.05, 0, 2500); },
   cannon() { noise(0.9, 0.3, 0, 0, false, 320); tone(68, 0.9, 'sine', 0.4, 0, 0.4); tone(110, 0.3, 'square', 0.05, 0, 0.3, 500); },
 };
 // ---------- cassette tapes: each is a little procedural band ----------
@@ -981,7 +983,7 @@ function speak(text, pitch) { if (!voiceOn || sfxV <= 0 || !arVoice) return; try
 const KEY = 'rahma-cart-v4';
 const fresh = () => ({ money: 0, day: 1, up: { speed: 0, pat: 0, price: 0, store: 0, ah: 0 }, menu: {}, help: {}, tapes: { rahma: 1 }, tape: 'rahma', tut: 0, stars: {}, best: 0, diff: null, seenDiaa: 0,
   extras: {}, served: {}, album: {}, cos: { aw: 'red', lights: 0, neon: 0, gold: 0 }, cosOwn: { red: 1 }, name: '', story: 0, fin: 0, life: 0, chBest: null, meal: 0, rivalW: 0,
-  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0 });
+  st: { cust: 0, thief: 0, leg: 0, dlv: 0, meals: 0, wrap: 0, s3: 0, endl: 0 }, ach: {}, title: '', endBest: 0, fr: {}, rec: {}, wh: {}, grow: 0, note: [], rate: 3, wheel: '', pre: null });
 let S = fresh(), saved = null;
 function load(o) { const f = fresh(); return Object.assign(f, o, { up: Object.assign(f.up, o.up || {}), tapes: Object.assign(f.tapes, o.tapes || {}), cos: Object.assign(f.cos, o.cos || {}), cosOwn: Object.assign(f.cosOwn, o.cosOwn || {}), st: Object.assign(f.st, o.st || {}), ach: Object.assign(f.ach, o.ach || {}) }); }
 try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved) S = load(saved); } catch (e) { }
@@ -1075,6 +1077,7 @@ const TRAITS = {
   rich: { i: '💰', n: 'كريم', say: 'خد راحتك يا باشا 💰' },
   thief: { i: '🕶', n: 'نصاب' },
   haggle: { i: '🤝', n: 'بيفاصل' },
+  note: { i: '📒', n: 'على النوتة' },
 };
 // combo meals: a sandwich, a side and a drink in one bag, paid 25% more
 const MEAL = { main: ['hafoWrap', 'hankSand'], side: ['jabFries', 'sakrFal', 'shawqyIce'], drink: ['aaoJuice', 'halaq', 'zarbSmoothie', 'aaotaMilk', 'zoolTea'] };
@@ -1123,10 +1126,10 @@ function befriend(c, sx) {
   sfx.vip(); burst(sx, 160, 16, ['#ff8ae8', '#ffffff'], 'heart', 0.8);
 }
 // haggling: half price for a happy, patient customer, or full price and a grumpy one
-function hagAnswer(c, yes) {
-  c.hag = 0; c.sayT = 1.6; sfx.talk(CH[c.ch].f);
-  if (yes) { c.disc = 0.6; c.hagOk = 1; c.pat = c.max; c.say = 'حبيبي يا معلم! 😍'; sfx.combo(3); burst(SLOTX[c.slot], 120, 10, ['#ff8ae8', '#ffffff'], 'heart', 0.6); }
-  else { if (isFinite(c.max)) c.pat = Math.max(2, c.pat - c.max * 0.3); c.shake = 0.5; c.say = 'ماشي يا عم البخيل 😤'; }
+function hagAnswer(c, yes) {   // also answers "put it on my tab": he pays tomorrow, double or nothing
+  const nt = c.q === 'note'; c.hag = 0; c.sayT = 1.6; sfx.talk(CH[c.ch].f);
+  if (yes) { if (nt) c.noteOk = 1; else { c.disc = 0.6; c.hagOk = 1; c.pat = c.max; } c.say = nt ? 'ابن حلال! هعدّي عليك بكره 📒' : 'حبيبي يا معلم! 😍'; sfx.combo(3); burst(SLOTX[c.slot], 120, 10, ['#ff8ae8', '#ffffff'], 'heart', 0.6); }
+  else { if (isFinite(c.max)) c.pat = Math.max(2, c.pat - c.max * 0.3); c.shake = 0.5; c.say = nt ? 'طيب هدفع... 😒' : 'ماشي يا عم البخيل 😤'; }
 }
 const HAGB = [[-40, 1], [12, 0]];
 function hagAt(x, y) { for (const c of G.slots) if (c && c.hag === 1 && c.st === 'wait') for (const [dx, yes] of HAGB) if (Math.hypot(x - SLOTX[c.slot] - dx, y - 110) < 26) return [c, yes]; return null; }
@@ -1147,6 +1150,82 @@ function setHolds() {
   HOLDS.length = 2; delete SLOT.hold2;
   if (S.grow) { HOLDS.push('hold2'); SLOT.hold0 = [945, 404]; SLOT.hold1 = [921, 404]; SLOT.hold2 = [897, 404]; SLOTS_S.hold2 = 0.5; }
   else { SLOT.hold0 = [939, 404]; SLOT.hold1 = [903, 404]; }
+}
+// a day's weather and event, rolled a day ahead so the hara radio can hint at them
+function planDay(d) {
+  const legend = !CHAL && d % 7 === 0, sea = !CHAL && !legend ? seasonOf(d) : null;
+  const wx = !legend && !sea && d >= 2 && grand() < 0.4 ? gpick(['hot', 'rain']) : null;
+  const ev = d >= 3 && !legend && sea !== 'ram' && grand() < 0.55 ? { k: gpick(d >= 4 ? ['power', 'match', 'raid'] : ['power', 'match']), at: grnd(22, 50) } : null;
+  return { d, wx, ev };
+}
+// hara radio: a funny bulletin mid-day, then a hint about tomorrow
+const NEWS = ['العاعاعوط كسب مسابقة أعلى صرخة للسنة التالتة على التوالي', 'الحنكليس فتح قناة يوتيوب عن الحنكلسة وعنده ٣ مشتركين', 'أبو الزول بيقول الأهرامات اتبنت عشان يبقى ليه مكان يقعد فيه',
+  'السكرتح اتمنع من البحر بعد ما عض موجة', 'الدولازليق بيحاول يطير بقاله ١٢ سنة ولسه مكمّل', 'فلوبا رجع من فرنسا وبيقول بونجور لكل حاجة حتى الفول',
+  'عباس رفع عربية بإيد واحدة، وبعدين رجّعها مكانها عشان صاحبها زعل', 'الهصلاص هصلص في الجنينة ومحدش فهم يعني إيه', 'أبو حسيبة نام في الكشك ٧ ساعات وصحي يسأل: هو أنا نمت؟',
+  'الزربوطان بيدوّر على شغل، بس بعد القيلولة'];
+function newsHint(d, pl) {
+  const legend = d % 7 === 0, sea = !legend && seasonOf(d), A = AREAS.reduce((a, r, i) => d >= r.from ? i : a, 0);
+  if (A !== areaI()) return 'بيقولوا العربية هتتنقل ' + AREAS[A].n + ' بكره 📍';
+  if (legend) return 'بكره الرحمة الكونية نازلة الحارة بطلبات كتير 🌟';
+  if (sea === 'ram' && seasonOf(d - 1) !== 'ram') return 'رمضان على الأبواب، بكره الفوانيس هتنوّر 🌙';
+  if (sea === 'eid') return 'بكره العيد! الكحك عند أبو حسيبة والبقشيش الضعف 🎉';
+  if (!sea && d >= 6 && d % 3 === 0) return 'سكرتاعوط بيقول إنه هيفتح عربية قصادك بكره 😤';
+  if (pl && pl.ev) return { match: 'بكره ماتش الرحمة الكبير ⚽ هتبقى زحمة', power: 'شركة الكهربا بتقول ممكن تقطع بكره ⚡', raid: 'البلدية ناوية تعمل كبسة بكره 🚨' }[pl.ev.k];
+  if (pl && pl.wx) return pl.wx === 'hot' ? 'الأرصاد: بكره حر نار ☀️ الساقع هيكسّر' : 'الأرصاد: بكره مطر 🌧 جهّز الشاي';
+  return null;
+}
+function updateNews() { const n = G.news; if (n && n.length && G.dayT >= n[0].at && G.time > 8 && !G.toast) { toast('📻 راديو الحارة: ' + n.shift().s, '#cfe4ff', 4.5); sfx.radio(); } }
+// end-of-day reviews: three posts about you, and a rating that brings more (or fewer) customers tomorrow
+const REV = {
+  fast: ['أسرع من صاروخ الرحمة 🚀', 'لسه بقول عايز لقيت الأكل في إيدي', 'خدمة ولا في الفنادق، تسلم إيدك'],
+  fav: ['عملي {p} زي ما بحبه بالظبط 😍', '{p} هنا أحسن من بتاع أمي، متقولوش لها'],
+  ok: ['الأكل حلو بس الطابور طوّل شوية', 'كويس، هرجع تاني بكره إن شاء الله', 'ماشي الحال، الصوص كان ناقص حبة'],
+  angry: ['استنيت لحد ما دقني طولت 😤', 'مشيت جعان، العربية دي محتاجة رحمة', 'نجمة واحدة عشان مفيش أقل من كده'],
+  dirty: ['الدبان كان واكل قبلي 🤢', 'الأكل حلو بس الكاونتر محتاج يتمسح يا جماعة'],
+  hag: ['فاصلته ووافق، راجل جدع ❤️', 'نزّلّي في السعر وكمان ابتسم، تحفة'],
+  note: ['سجّلي على النوتة من غير كلام، ابن حلال', 'أول مرة حد يصدقني، هرجع أدفع والله 😅'],
+  rec: ['جربت الوصفة السرية… مش هقول لحد 🤫', 'مين اخترع {p} ده؟ عبقري'],
+  caught: ['اتمسكت وأنا بجري، بس الأكل كان يستاهل 😅'], vip: ['الكون كله بيشكرك 🌌'], dlv: ['الطلب وصل سخن والطيار مبسوط 🛵'],
+};
+function rateDay() {
+  const rv = G.revs || [], bad = rv.filter(r => r.k === 'angry' || r.k === 'dirty'), gd = rv.length - bad.length, gw = gd + G.perfect * 0.3;
+  G.rate = rv.length ? Math.round(clamp(1 + 4 * gw / (gw + bad.length * 1.6), 1, 5) * 2) / 2 : 3; S.rate = G.rate;
+  const mix = a => a.sort(() => Math.random() - 0.5), sp = mix(rv.filter(r => !['ok', 'fast', 'angry', 'dirty'].includes(r.k))).slice(0, 2);
+  const seen = {}; G.posts = [];
+  for (const r of [].concat(bad.length ? [pick(bad)] : [], sp, mix(rv.filter(r => r.k === 'fast' || r.k === 'ok')))) {
+    if (G.posts.length >= 3 || seen[r.ch]) continue; seen[r.ch] = 1; const b = r.k === 'angry' || r.k === 'dirty';
+    G.posts.push({ ch: r.ch, st: b ? 1 + (Math.random() < 0.4 ? 1 : 0) : r.k === 'ok' ? 3 + (Math.random() < 0.5 ? 1 : 0) : 5, s: pick(REV[r.k]).replace('{p}', r.p ? PROD[r.p].n : '') });
+  }
+}
+// a dirty counter: crumbs, cans and flies pile up as you serve; past halfway customers lose patience faster. Swipe it clean
+const DIRTX = [160, 335, 505, 675, 843];
+const dirtN = () => Math.min(5, Math.floor((G.dirt || 0) * 6));
+function updateDirt(dt) {
+  if (S.day < 3) return;
+  G.dirt = Math.min(1, G.dirt + dt * 0.0035);
+  if (G.dirt >= 0.5 && !G.dirtWarn) { G.dirtWarn = 1; toast('🪰 الكاونتر اتوسخ والزباين بتقرف! امسحه بصباعك', '#ffe9b8', 2.6); }
+  const n = dirtN(); if (n < G.dirtN) { burst(DIRTX[n], CT - 10, 10, ['#ffffff', '#bfe6ff'], 'star', 0.5); sfx.pop(4); if (!n) G.dirtWarn = 0; } G.dirtN = n;
+}
+function wipeTo(x, y) {
+  const w = G.wipe, d = Math.hypot(x - w.x, y - w.y); w.x = x; w.y = y; G.dirt = Math.max(0, G.dirt - d / 650);
+  if ((w.d += d) > 70) { w.d = 0; sfx.wipe(); burst(x, y, 3, ['#ffffff', '#bfe6ff'], 'conf', 0.3); }
+}
+// luck wheel: one free spin on the first visit of each calendar day
+const WHEEL = [{ k: 'm', v: 30, s: '٣٠ ج', c: '#e8a42a' }, { k: 'm', v: 60, s: '٦٠ ج', c: '#ff6a2a' }, { k: 'crate', s: 'كرتونة', c: '#a8743e' }, { k: 'm', v: 120, s: '١٢٠ ج', c: '#2e9d4a' },
+  { k: 'none', s: 'حظ أوفر', c: '#8a7a8a' }, { k: 'tape', s: 'شريط', c: '#e0388a' }, { k: 'm', v: 250, s: '٢٥٠ ج', c: '#5b3cc4' }, { k: 'aw', s: 'تندة', c: '#2e7fb8' }];
+function spinWheel() { const w = G.whl; if (w.st !== 'idle') return; w.st = 'spin'; w.v = 13 + Math.random() * 7; sfx.tap(); }
+function updWheel(dt) {
+  const w = G.whl, sg = Math.PI / 4; w.t += dt; if (w.st !== 'spin') return;
+  const a0 = w.a; w.a += w.v * dt; w.v *= Math.exp(-dt * 0.85); if (Math.floor(a0 / sg) !== Math.floor(w.a / sg)) sfx.tick();
+  if (w.v < 0.25) { w.st = 'done'; w.t = 0; w.prize = wheelGive(WHEEL[((Math.round(-w.a / sg) % 8) + 8) % 8]); S.wheel = dayKey(); save(); sfx.fanfare(); burst(480, 250, 40, ['#ffd23f', '#ffffff', '#ff8ae8'], 'star', 1.2); }
+}
+function wheelGive(p) {
+  if (p.k === 'm') { S.money += p.v; return 'كسبت ' + ar(p.v) + ' ج! 🎉'; }
+  if (p.k === 'tape') { const ks = Object.keys(TAPES).filter(k => !S.tapes[k] && !TAPES[k].lock); if (ks.length) { const k = pick(ks); S.tapes[k] = 1; return 'كسبت ' + TAPES[k].n + '! 📼'; } }
+  if (p.k === 'aw') { const ks = Object.keys(AWN).filter(k => !S.cosOwn[k]); if (ks.length) { const k = pick(ks); S.cosOwn[k] = 1; return 'كسبت ' + AWN[k].n + '! ركّبها من زينة العربية'; } }
+  if (p.k === 'crate') { const g = pick(MKG.filter(grpOn)); S.wh[g] = Math.min(WH_MAX, (S.wh[g] || 0) + CRATE); return 'كسبت كرتونة ' + grpName(g) + ' في المخزن 📦'; }
+  if (p.k === 'none') return 'حظ أوفر المرة الجاية 😅';
+  S.money += 80; return 'كسبت ٨٠ ج! 🎉';
 }
 // daily missions
 function mkMissions() {
@@ -1289,7 +1368,11 @@ let dispMoney = S.money, moneyBounce = 0, ptr = { x: 0, y: 0 }, OVL = null, slid
 const fullStock = () => { const o = {}; for (const k in STOCK) o[k] = capOf(k); return o; };
 function newDay() {
   const legend = !CHAL && S.day % 7 === 0, sea = !CHAL && !legend ? seasonOf(S.day) : null;
-  const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0, wx = !legend && !sea && S.day >= 2 && grand() < 0.4 ? gpick(['hot', 'rain']) : null;
+  const rival = !CHAL && !legend && !sea && S.day >= 6 && S.day % 3 === 0, pl = !CHAL && S.pre && S.pre.d === S.day ? S.pre : planDay(S.day), wx = pl.wx;
+  if (!CHAL) S.pre = S.pre && S.pre.d === S.day + 1 ? S.pre : planDay(S.day + 1);
+  let noteR = null;   // yesterday's tab: friends are likelier to come back and pay double
+  if (!CHAL && S.note.length) { noteR = { paid: 0, n: 0, gone: 0 }; for (const nt of S.note) { if (Math.random() < 0.55 + 0.12 * frLv(nt.ch)) { noteR.paid += nt.a * 2; noteR.n++; } else noteR.gone++; } S.money += noteR.paid; S.life += noteR.paid; S.note = []; save(); }
+  const hint = !CHAL && S.day >= 2 ? newsHint(S.day + 1, S.pre) : null;
   if (sea) SEAS[sea].src.forEach((k, i) => SRC[k].x = 897 + i * 33);
   setHolds();
   G = { state: 'intro', t: G.t, time: DAYLEN, dayT: 0, slots: [null, null, null, null], spawnT: 1.2, earned: 0, spent: 0, happy: 0, angry: 0, perfect: 0,
@@ -1301,15 +1384,16 @@ function newDay() {
     stock: fullStock(), ah: { st: 'sit', t: 0, x: AHX, y: AHY, q: [], tgt: null, say: null, sayT: 0, warned: {} },
     tut: S.tut ? null : { step: 0, t: 0 }, paused: false, shopTab: 'menu',
     power: true, powerT: 0, matchT: 0, raid: null, legend: legend ? { at: 26, on: 0 } : null,
-    ev: S.day >= 3 && !legend && sea !== 'ram' && grand() < 0.55 ? { k: gpick(S.day >= 4 ? ['power', 'match', 'raid'] : ['power', 'match']), at: grnd(22, 50), on: 0 } : null,
+    ev: pl.ev ? Object.assign({}, pl.ev, { on: 0 }) : null,
     cnt: {}, favN: 0, exN: 0, caught: 0, bonus: 0, ms: [], storyQ: null, storyL: 0, storyT: 0,
     sea, wx, rival: rival ? { e: 0 } : null, iftar: sea === 'ram' ? { at: 40, on: 0 } : null, iftarT: 0, meals: 0,
+    noteR, dirt: 0, dirtN: 0, wipe: null, revs: [], news: !CHAL && S.day >= 2 ? [{ at: 24, s: pick(NEWS) }].concat(hint ? [{ at: 58, s: hint }] : []) : [],
     mk: mkFor(S.day), dlvQ: S.day >= 4 ? [grnd(25, 45), grnd(55, 75)].slice(0, S.day >= 7 ? 2 : 1) : [], hlp: S.help.zarb ? { st: 'idle', t: 0, cd: 2, say: null, sayT: 0, happy: 0 } : null, fly: [] };
   if (!CHAL) { G.ms = mkMissions(); G.forceThief = G.ms.some(m => m.k === 'thief'); const q = storyQueue(); if (q.length) { G.storyQ = q; G.state = 'story'; } }
   dispMoney = S.money;
 }
 function startPlay() { G.state = 'play'; G.stock = fullStock(); sfx.bell(); if (G.tut) tutEnter(); }
-function toast(s, c = '#fff3d6') { G.toast = { s, c, t: 1.8 }; }
+function toast(s, c = '#fff3d6', d = 1.8) { G.toast = { s, c, t: d }; }
 function addPop(x, y, s, c, size = 30, life = 1.2) { G.pops.push({ x, y, s, c, size, t: 0, life }); }
 function burst(x, y, n, cols, kind = 'conf', spd = 1) { n = Math.min(n, 160 - G.parts.length); for (let i = 0; i < n; i++) { const a = rnd(0, Math.PI * 2), v = rnd(100, 320) * spd; G.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v - rnd(80, 200), life: rnd(0.7, 1.3), t: 0, c: pick(cols), s: rnd(5, 10), r: rnd(0, 6), vr: rnd(-10, 10), kind }); } }
 function makeCust(ch, order, slot, tr = null) {
@@ -1320,6 +1404,8 @@ function makeCust(ch, order, slot, tr = null) {
   speak('عايز ' + order.map(oName).join(' و '), CH[ch].vp);
   if (tr && TRAITS[tr].say) { G.slots[slot].say = TRAITS[tr].say; G.slots[slot].sayT = 2; }
   if (tr === 'haggle') Object.assign(G.slots[slot], { hag: 1, hagT: 6, say: 'تعملهولي بنص التمن؟ 🥺', sayT: 6 });
+  if (tr === 'note') Object.assign(G.slots[slot], { hag: 1, q: 'note', hagT: 6, say: 'سجّلها عليا في النوتة؟ 📒', sayT: 6 });
+  if (G.dirt >= 0.5 && !G.slots[slot].say) { G.slots[slot].say = 'إيه القرف ده 🤢'; G.slots[slot].sayT = 1.6; }
 }
 const legOrder = () => { const up = owned(); return [0, 1, 2].map(() => gpick(up)); };
 function spawn() {   // returns false when it held back, so the timer retries soon
@@ -1346,7 +1432,7 @@ function spawn() {   // returns false when it held back, so the timer retries so
   let meal = false; if (S.meal && n >= 2 && !wish && grand() < 0.4) { const m = mkMeal(n); if (m) { order.length = 0; order.push(...m); meal = true; } }
   order.forEach((p, i) => { for (const x in EXTRAS) if (S.extras[x] && EXTRAS[x].on.includes(p) && grand() < (x === 'i' && G.wx === 'hot' ? 0.6 : 0.3)) order[i] = p + '|' + x; });
   let tr = null;
-  if (!CH[ch].vip && S.day >= 3 && !G.tut) { if (G.forceThief && G.dayT > 8) { tr = 'thief'; G.forceThief = false; } else if (grand() < 0.25) { const tl = S.diff === 'easy' ? ['rich', 'picky', 'thief'] : ['rich', 'picky', 'thief', 'rush']; if (S.day >= 5) tl.push('haggle'); tr = gpick(tl); } }
+  if (!CH[ch].vip && S.day >= 3 && !G.tut) { if (G.forceThief && G.dayT > 8) { tr = 'thief'; G.forceThief = false; } else if (grand() < 0.25) { const tl = S.diff === 'easy' ? ['rich', 'picky', 'thief'] : ['rich', 'picky', 'thief', 'rush']; if (S.day >= 5) tl.push('haggle'); if (!CHAL && S.day >= 6 && S.note.length < 3) tl.push('note'); tr = gpick(tl); } }
   const slot = pick(free); makeCust(ch, order, slot, tr);
   if (wish) { G.slots[slot].say = PROD[wish].rec ? 'تعرف تعمل ' + PROD[wish].n + '؟ 🤔' : 'مفيش ' + PROD[wish].n + '؟ 😢'; G.slots[slot].sayT = 2.4; }
   if (meal) { const c = G.slots[slot]; c.meal = 1; c.max *= 1.15; c.pat = c.max; }
@@ -1357,7 +1443,7 @@ function wants(c, p) { return c && c.st === 'wait' && c.order.some(o => oKey(o) 
 function runAt(x, y) { for (const c of G.slots) if (c && c.st === 'run' && Math.abs(x - SLOTX[c.slot] - (c.rx || 0)) < 90 && y > 40 && y < CT + 10) return c; return null; }
 function catchThief(c) {
   const x = SLOTX[c.slot] + c.rx; S.money += c.due; G.earned += c.due; S.life += c.due; G.caught++; S.st.thief++;
-  c.st = 'angry'; c.t = 0; c.say = 'خلاص خلاص هدفع 😅'; c.sayT = 99;
+  c.st = 'angry'; c.t = 0; c.say = 'خلاص خلاص هدفع 😅'; c.sayT = 99; if (G.revs) G.revs.push({ ch: c.ch, k: 'caught' });
   addPop(x, 150, 'مسكته! +' + ar(c.due) + ' ج', '#9be37a', 30); for (let i = 0; i < 6; i++) G.coins.push({ x0: x + rnd(-20, 20), y0: 200, t: -i * 0.05, d: 0.6, k: i });
   burst(x, 160, 20, ['#ffd23f', '#ffffff', '#9be37a'], 'star'); sfx.cash(); sfx.squawk(); buzz(30); G.shake = 0.2;
 }
@@ -1398,7 +1484,11 @@ function complete(c) {
     c.st = 'run'; c.t = 0; c.rx = 0; c.due = pay + tip; c.dir = sx < 480 ? -1 : 1; c.say = 'سلام يا معلم! 🏃'; c.sayT = 99;
     toast('🕶 النصاب بيجري من غير ما يدفع! دوس عليه', '#ffd0c8'); sfx.whoosh(); if (G.tut) tutEvent('complete'); return;
   }
-  S.money += pay + tip; G.earned += pay + tip; S.life += pay + tip;
+  const got = c.noteOk ? 0 : pay + tip; if (c.noteOk) S.note.push({ ch: c.ch, a: pay + tip });
+  S.money += got; G.earned += got; S.life += got;
+  const rp = c.order.find(o => PROD[o.p].rec), fp = c.order.find(o => PROD[o.p].ch === c.ch);
+  if (G.revs) G.revs.push({ ch: c.ch, k: CH[c.ch].vip ? 'vip' : c.dlv ? 'dlv' : c.noteOk ? 'note' : c.hagOk ? 'hag' : rp ? 'rec' : fav ? 'fav' : f > 0.66 ? 'fast' : 'ok', p: (rp || fp || c.order[0]).p });
+  if (S.day >= 3) G.dirt = Math.min(1, (G.dirt || 0) + 0.035);
   S.st.cust++; S.st.wrap += c.order.filter(o => o.p === 'hafoWrap').length; if (c.meal) S.st.meals++; if (c.dlv) S.st.dlv++;
   befriend(c, sx);
   if (c.legend && c.waves > 0) { c.waves--; c.order = legOrder().map(p => ({ p: pid(p), x: pex(p), done: false })); c.pat = c.max; c.t = 0; c.say = 'كمان! 🌌'; c.sayT = 1.6; }
@@ -1411,8 +1501,8 @@ function complete(c) {
   addPop(sx, 110, rating[0], rating[1], f > 0.66 ? 44 : 34);
   if (fav) { addPop(sx, 160, 'طبقه المفضل! ×٢', '#ff8ae8', 24, 1.4); burst(sx, 160, 10, ['#ff8ae8', '#ffffff'], 'heart', 0.6); }
   if (c.meal) { G.meals++; addPop(sx, 236, '🛍 وجبة الرحمة +٢٥٪', '#ffd9a0', 22, 1.4); }
-  addPop(sx, 200, '+' + ar(pay + tip) + ' ج', '#fff3d6', 28, 1.3);
-  const n = clamp(Math.round((pay + tip) / 4), 4, 14);
+  addPop(sx, 200, c.noteOk ? '📒 على النوتة ' + ar(pay + tip) + ' ج' : '+' + ar(pay + tip) + ' ج', c.noteOk ? '#ffe9b8' : '#fff3d6', 28, 1.3);
+  const n = c.noteOk ? 0 : clamp(Math.round((pay + tip) / 4), 4, 14);
   for (let i = 0; i < n; i++) G.coins.push({ x0: sx + rnd(-30, 30), y0: 220 + rnd(-30, 30), t: -i * 0.05, d: 0.65 + rnd(0, 0.15), k: i });
   burst(sx, 180, f > 0.66 ? 34 : 18, c.vip ? ['#ffd86b', '#b79bff', '#ffffff'] : ['#ffd23f', '#ff5e7a', '#6be3ff', '#9be37a', '#ffffff']);
   burst(sx, 150, 5, ['#ff5e7a'], 'heart', 0.5);
@@ -1636,13 +1726,14 @@ cv.addEventListener('pointerdown', e => {
   const sk = srcAt(x, y);
   if (sk && tutAllows('src')) { const s = SRC[sk]; if (s.st && G.stock[s.st] <= 0) { emptyAsk(s.st); return; } G.drag = { key: 'src:' + sk, x, y, sx: x, sy: y, moved: false }; sfx.pick(); return; }
   if (G.sel) { const c = custAt(x, y); if (c && tutAllows('cust')) { deliver(c, G.sel); return; } }
+  if (!G.tut && G.dirt > 0.04 && y > CT - 34 && y < CT + 10 && x > 140 && x < 860) { G.wipe = { x, y, d: 0 }; return; }
   const k = stationAt(x, y);
   if (k && tutAllows('station', k)) { if (k === 'trash' || k === 'vit' || k === 'sauce' || k === 'ice' || k === 'board' || !G.sel) act(k); else { G.sel = null; act(k); } return; }
   if (!G.tut) G.sel = null;
 });
-cv.addEventListener('pointermove', e => { const p = toGame(e); ptr = p; if (slideB) slideB.fn(p.x, p.y); if (G.drag) { G.drag.x = p.x; G.drag.y = p.y; if (Math.hypot(p.x - G.drag.sx, p.y - G.drag.sy) > 10) G.drag.moved = true; } });
+cv.addEventListener('pointermove', e => { const p = toGame(e); ptr = p; if (slideB) slideB.fn(p.x, p.y); if (G.wipe) wipeTo(p.x, p.y); if (G.drag) { G.drag.x = p.x; G.drag.y = p.y; if (Math.hypot(p.x - G.drag.sx, p.y - G.drag.sy) > 10) G.drag.moved = true; } });
 addEventListener('pointerup', e => {
-  slideB = null; if (!G.drag) return; const p = toGame(e), d = G.drag; G.drag = null;
+  slideB = null; G.wipe = null; if (!G.drag) return; const p = toGame(e), d = G.drag; G.drag = null;
   if (!d.moved) { G.sel = G.sel === d.key ? null : d.key; return; }
   const c = custAt(p.x, p.y);
   if (c && tutAllows('cust')) { deliver(c, d.key); return; }
@@ -1668,6 +1759,8 @@ function update(dt) {
   if (G.state === 'story') { G.storyT += dt; return; }
   if (G.state === 'intro') { G.introT += dt; return; }
   if (G.state === 'end') { G.endT += dt; const st = G.stars || 0; [0.9, 1.4, 1.9].forEach((tt, i) => { if (i < st && G.endT - dt < tt && G.endT >= tt) { sfx.star(i); burst(380 + i * 100, G.endY + 110, 24, ['#ffd23f', '#ffffff', '#ff8a3d'], 'star'); } }); return; }
+  if (G.state === 'wheel') { updWheel(dt); return; }
+  if (G.state === 'title' && !OVL && !CHAL && S.day >= 2 && S.tut && S.wheel !== dayKey() && G.t > 1.5) { G.state = 'wheel'; G.whl = { a: 0, v: 0, st: 'idle', t: 0 }; }
   if (G.state !== 'play' || G.paused) return;
   G.coins = G.coins.filter(c => { c.t += dt; if (c.t >= c.d) { moneyBounce = 1; sfx.coin(c.k); return false; } return true; });
   if (G.fly) G.fly = G.fly.filter(f => (f.t += dt) < 0.35);
@@ -1695,7 +1788,7 @@ function update(dt) {
       G.time = Math.max(0, G.time - dt);
       const sec = Math.ceil(G.time); if (G.time < 10 && sec !== G.lastTick) { G.lastTick = sec; sfx.tick(); }
       fast = G.time < 15 && G.time > 0;
-      G.spawnT -= dt; if (G.spawnT <= 0) G.spawnT = spawn() ? Math.max(5.5, 9 - S.day * 0.45) * (1 - 0.025 * Object.keys(S.menu).length) * area().sp * (G.matchT > 0 ? 0.6 : 1) * (G.iftar && !G.iftar.on ? 1.5 : G.iftarT > 0 ? 0.65 : 1) * rnd(0.75, 1.2) : 1;
+      G.spawnT -= dt; if (G.spawnT <= 0) G.spawnT = spawn() ? Math.max(5.5, 9 - S.day * 0.45) * (1 - 0.025 * Object.keys(S.menu).length) * area().sp * (G.matchT > 0 ? 0.6 : 1) * (G.iftar && !G.iftar.on ? 1.5 : G.iftarT > 0 ? 0.65 : 1) * (S.rate >= 4.5 ? 0.9 : S.rate <= 2 ? 1.1 : 1) * rnd(0.75, 1.2) : 1;
       if (G.time === 0) { toast('الوقت خلص! خلّص الزباين اللي فاضلين', '#ffd0c8'); sfx.bell(); }
     }
   }
@@ -1709,8 +1802,8 @@ function update(dt) {
     if (c.st === 'in' && c.t > 0.45) { c.st = 'wait'; c.t = 0; }
     else if (c.st === 'run') { c.rx = c.dir * Math.pow(Math.min(1, c.t / 1.8), 2) * 560; if (c.t > 1.8) { toast('النصاب هرب بـ' + ar(c.due) + ' ج 😤', '#ffd0c8'); G.slots[i] = null; } }
     else if (c.st === 'wait' && !tut && isFinite(c.max) && !shut) {
-      c.pat -= dt;
-      if (c.pat <= 0) { c.st = 'angry'; c.t = 0; c.say = pick(['مفيش رحمة!', 'أنا ماشي!', 'إيه البطء ده؟!']); c.sayT = 99; G.angry++;
+      c.pat -= dt * (G.dirt >= 0.5 ? 1.2 : 1);
+      if (c.pat <= 0) { c.st = 'angry'; c.t = 0; c.say = pick(['مفيش رحمة!', 'أنا ماشي!', 'إيه البطء ده؟!']); c.sayT = 99; G.angry++; if (G.revs) G.revs.push({ ch: c.ch, k: G.dirt >= 0.5 ? 'dirty' : 'angry' });
         if (c.dlv) c.say = 'الزبون لغى الطلب! 😤';
         if (CHAL && CHAL.endless && !(G.overT > 0)) { CHAL.strikes++; G.shake = 0.3; if (CHAL.strikes >= 3) { G.overT = 1.4; toast('❌❌❌ ٣ زباين مشيوا زعلانين! خلصت', '#ffd0c8'); } }
         if (G.rival && !c.dlv) { const v = c.order.reduce((s, o) => s + PROD[o.p].price, 0); G.rival.e += v; c.say = 'هروح لسكرتاعوط! 😤'; addPop(RIVX, 150, '+' + ar(v) + ' ج لسكرتاعوط', '#ff8a8a', 18, 1.4); } if (G.combo >= 2) addPop(480, 250, 'الكومبو راح!', '#ff7a6a', 28); G.combo = 0; sfx.wrong(); }
@@ -1727,7 +1820,7 @@ function update(dt) {
       const c = G.slots[sl2]; c.dlv = 1; c.max = c.pat = S.diff === 'easy' ? 70 : 40; sfx.phone(); toast('📞 طلب دليفري! جهّزه قبل ما الطيار يمشي 🛵', '#ffe38a');
     }
   }
-  if (!tut) updateEvents(dt);
+  if (!tut) { updateEvents(dt); updateDirt(dt); updateNews(); }
   if (!tut && G.hlp) updateHelper(dt);
   if (!tut && CHAL && CHAL.endless) endlessTick(dt);
   if (!tut && G.birdAt > 0 && G.dayT >= G.birdAt && G.time > 0) { G.birdAt = -1; G.bird = { x: W + 70, y: 150, t: 0 }; toast('امسك سكرتاعوط قبل ما يسرق الدرج!', '#ffd0c8'); sfx.squawk(); }
@@ -1748,6 +1841,7 @@ function endDay() {
     sfx.fanfare(); return;
   }
   for (const m of G.ms) if (!m.done && m.k === 'noAngry' && G.angry === 0 && G.happy >= 3) missionDone(m, true);
+  rateDay();
   if (G.rival) { G.rivalWin = G.earned - G.spent >= G.rival.e; if (G.rivalWin) { G.rivalB = 20 + S.day * 4; S.money += G.rivalB; S.life += G.rivalB; S.rivalW++; } }
   const tg = target(S.day), net = G.earned - G.spent; G.stars = net >= tg * 2 ? 3 : net >= tg * 1.5 ? 2 : net >= tg ? 1 : 0;
   S.stars[S.day] = Math.max(S.stars[S.day] || 0, G.stars); S.best = Math.max(S.best, G.bestCombo); if (G.stars === 3) S.st.s3 = 1;
@@ -2231,6 +2325,55 @@ function drawItems(t) {
   if (G.sel && G.sel.startsWith('src:')) { const [x, y] = srcPos(G.sel.slice(4)); ctx.save(); ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 8); ctx.beginPath(); ctx.arc(x, y - 18, 26, 0, Math.PI * 2); ctx.lineWidth = 3; ctx.strokeStyle = '#ffe066'; ctx.setLineDash([6, 5]); ctx.stroke(); ctx.restore(); }
   if (G.drag) { const p = prodOf(G.drag.key); if (p) { ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(G.drag.x + 6, G.drag.y + 42, 30, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; prod(p, G.drag.x, G.drag.y + 30, 1.15, t); ctx.restore(); } }
 }
+function drawDirt(t) {
+  const n = dirtN();
+  for (let i = 0; i < n; i++) {
+    const x = DIRTX[i] + (hash(i + S.day) - 0.5) * 14, y = CT - 6;
+    if (i === 0) { B([[x - 9, y - 2], [x - 2, y - 9], [x + 8, y - 6], [x + 9, y + 3], [x, y + 6], [x - 8, y + 4]], '#f4f2ec', { lw: 1.8, hl: 0.2 }); L([[x - 4, y - 3], [x + 3, y + 1]], 1, '#9a9488'); }
+    else if (i === 1) { ctx.save(); ctx.translate(x, y); ctx.rotate(1.3); R(-6, -11, 12, 22, 3, '#d32f2f', { lw: 1.8, hl: 0.4 }); R(-6, -11, 12, 4, 2, '#c9d1d6', { lw: 1.2 }); ctx.restore(); }
+    else if (i === 2) E(x, y + 3, 14, 5, '#8a4a1a', { lw: 1.4, hl: 0.3, v: false });
+    else if (i === 3) { for (const s of [-1, 1]) B([[x, y - 4], [x + s * 6, y - 2], [x + s * 12, y + 4], [x + s * 4, y + 2]], '#f4c430', { lw: 1.6 }); E(x, y - 4, 3, 3, '#6a4a1a', { lw: 1 }); }
+    else { L([[x - 12, y], [x + 10, y]], 2.2, '#e8e0cc'); for (let k = 0; k < 4; k++) L([[x - 8 + k * 5, y - 5], [x - 6 + k * 5, y + 5]], 1.6, '#e8e0cc'); E(x + 12, y, 4, 3.5, '#e8e0cc', { lw: 1.2 }); }
+    const fx = x + Math.cos(t * 5 + i * 2) * 16, fy = y - 18 + Math.sin(t * 8 + i) * 7;   // a fly
+    ctx.save(); ctx.globalAlpha = 0.6; E(fx - 3, fy - 3, 3.5, 2, '#e8f4ff', { ol: false, shade: false }); E(fx + 3, fy - 3, 3.5, 2, '#e8f4ff', { ol: false, shade: false }); ctx.restore(); dot(fx, fy, 2.4, '#1a1a1a');
+  }
+  if (G.wipe) { const { x, y } = G.wipe; R(x - 18, y - 12, 36, 24, 7, '#ffd23f', { lw: 2.4, hl: 0.3 }); R(x - 18, y + 4, 36, 8, 3, '#2e9d4a', { lw: 2 }); for (let k = 0; k < 3; k++) E(x - 10 + k * 10, y - 16 - (k % 2) * 4, 3, 3, '#ffffff', { lw: 1, hl: 0.5, v: false }); }
+}
+function drawReviews() {
+  BT = BT.filter(b => b.id === 'hud'); dim(0.6);
+  const x = 270, w = 420;
+  R(x, 30, w, 484, 30, '#1c1c24', { lw: 3.5, shade: false }); R(x + 12, 56, w - 24, 440, 16, '#eef1f6', { lw: 2, shade: false }); R(x + 12, 56, w - 24, 46, 16, '#3b5998', { lw: 2, shade: false });
+  T('الرحمة بوك 📱', x + w - 90, 79, 20, '#fff', FD); T('تقييمك ⭐ ' + ar(G.rate) + ' من ٥', x + 92, 80, 13, '#dfe6ff');
+  G.posts.forEach((q, i) => {
+    const y = 114 + i * 124, p = RRp(x + 22, y, w - 44, 114, 12); ctx.fillStyle = '#fff'; ctx.fill(p); ctx.lineWidth = 1.6; ctx.strokeStyle = '#d0d6e0'; ctx.stroke(p);
+    const ax = x + w - 58, ay = y + 32;
+    ctx.save(); ctx.beginPath(); ctx.arc(ax, ay, 22, 0, Math.PI * 2); ctx.fillStyle = '#dfe6f2'; ctx.fill(); ctx.clip(); albPortrait(q.ch, ax, ay + 24, 0.17, true); ctx.restore();
+    ctx.beginPath(); ctx.arc(ax, ay, 22, 0, Math.PI * 2); ctx.lineWidth = 2; ctx.strokeStyle = OLC; ctx.stroke();
+    T(CH[q.ch].n, ax - 32, ay - 9, 15, '#1c1c24', FD, 'right');
+    for (let k = 0; k < 5; k++) star(ax - 40 - k * 15, ay + 13, 6, k < q.st ? '#ffc928' : '#d8dce4', k < q.st ? '#a86a00' : '#b8bcc8');
+    wrapT(q.s, x + w / 2 - 6, y + 78, w - 84, 14, '#2a2a34', 20);
+  });
+  T('دوس في أي حتة عشان تقفل', 480, 504, 12, '#9aa0b0');
+  btn(0, 0, W, H, () => { G.revOpen = 0; sfx.tap(); });
+}
+function drawWheel(t) {
+  const w = G.whl, cx = 480, cy = 266, r = 158, sg = Math.PI / 4;
+  dim(0.72); T('🎡 عجلة الحظ', 480, 46, 34, '#ffd23f', FD, 'center', 6, OLC); T('لفّة ببلاش كل يوم', 480, 80, 15, '#ffe9b8');
+  glow(cx, cy, r + 40, '#ffd86b', 0.35);
+  ctx.save(); ctx.translate(cx, cy);
+  WHEEL.forEach((p, i) => {
+    const a = -Math.PI / 2 + w.a + i * sg; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, a - sg / 2, a + sg / 2); ctx.closePath(); ctx.fillStyle = p.c; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = OLC; ctx.stroke();
+    ctx.save(); ctx.rotate(a); ctx.translate(r * 0.64, 0); ctx.rotate(Math.PI / 2); T(p.s, 0, 0, 18, '#fff', FD, 'center', 4, OLC); ctx.restore();
+  });
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.lineWidth = 6; ctx.strokeStyle = OLC; ctx.stroke();
+  for (let i = 0; i < 16; i++) { const a = i * Math.PI / 8; dot(Math.cos(a) * (r + 1), Math.sin(a) * (r + 1), 4.5, (i + Math.floor(t * 4)) % 2 ? '#fff6c8' : '#ffd23f'); }
+  E(0, 0, 26, 26, '#d7263d', { lw: 3, hl: 0.4 }); ctx.restore();
+  PL([[cx - 16, cy - r - 22], [cx + 16, cy - r - 22], [cx, cy - r + 8]], '#ffd23f', { lw: 3 });
+  if (w.st === 'done') {
+    const k = pop(w.t, 0.35); ctx.save(); ctx.translate(480, 270); ctx.scale(k, k); panel(-220, -76, 440, 152); T(w.prize, 0, -26, fit(w.prize, 400, 24, FD), '#3a1d0e', FD); ctx.restore();
+    bigBtn(400, 286, 160, 48, 'تمام', () => { G.state = 'title'; }, '#2e9d4a', 20);
+  } else bigBtn(390, 458, 180, 54, w.st === 'spin' ? '...' : 'لف العجلة!', spinWheel, '#e8304a', 22);
+}
 function drawHelper(t) {
   const h = G.hlp; if (!h) return;
   const zz = h.st === 'sleep', md = zz ? 0 : h.happy > 0 ? 1 : 0;
@@ -2501,6 +2644,8 @@ function drawIntro() {
   if (G.sea === 'eid') notes.push('🎉 العيد: الكحك والكنافة عند أبو حسيبة، والبقشيش الضعف');
   if (G.rival) notes.push('🛒 سكرتاعوط فاتح عربية قصادك! اللي يستنى كتير هيروحله');
   if (G.wx) notes.push(G.wx === 'hot' ? '☀️ يوم حر: الناس عايزة ساقع وتلج' : '🌧 يوم مطر: الشاي بيكسّر');
+  if (G.noteR) notes.push('📒 النوتة: ' + [G.noteR.n ? ar(G.noteR.n) + ' دفعوا الضعف +' + ar(G.noteR.paid) + ' ج' : '', G.noteR.gone ? ar(G.noteR.gone) + ' هربوا 😒' : ''].filter(Boolean).join(' و'));
+  if (!CHAL && S.day > 2 && S.rate >= 4.5 && notes.length < 2) notes.push('⭐ ريفيوهاتك حلوة: زباين أكتر النهارده');
   if (notes.length) { const nt = notes.join('   •   '); T(nt, 480, 150, fit(nt, 610, 15, FD), G.legend ? '#5b3cc4' : '#8a3a1a', FD); }
   const cw = Math.min(58, 610 / own.length), cs = cw / 58;
   own.forEach((p, i) => {
@@ -2661,6 +2806,8 @@ function drawEnd() {
   ctx.restore();
   bigBtn(490, y + h - 84, 260, 60, ok ? 'اليوم ' + ar(S.day) : 'جرّب تاني', () => newDay(), '#e8304a', 24);
   bigBtn(210, y + h - 80, 240, 54, '🛒 السوق', () => { G.state = 'shop'; G.shopFrom = 'end'; G.shopTab = 'menu'; }, deals ? '#2e7fb8' : '#6a8aa8', 22);
+  if (G.posts && G.posts.length) { const p = RRp(172, 44, 150, 52, 12); ctx.fillStyle = '#3b5998'; ctx.fill(p); ctx.lineWidth = 2.6; ctx.strokeStyle = OLC; ctx.stroke(p); T('📱 الريفيوهات', 247, 61, 15, '#fff', FD); T('⭐ ' + ar(G.rate) + ' من ٥', 247, 83, 13, '#ffe38a'); btn(172, 44, 150, 52, () => { G.revOpen = 1; sfx.tap(); }); }
+  if (G.revOpen) drawReviews();
 }
 function drawPause() {
   dim(0.75); panel(CHAL ? 300 : 210, 80, 360, 380);
@@ -2856,14 +3003,14 @@ function frame(now) {
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = '#15100c'; ctx.fillRect(0, 0, cv.width, cv.height);
     ctx.drawImage(bg, ox * SC * DPR, oy * SC * DPR);
     ctx.setTransform(SC * DPR, 0, 0, SC * DPR, ox * SC * DPR, oy * SC * DPR);
-    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } drawHUD(G.t); drawFX(G.t); }
+    if (G.state === 'title' || G.state === 'diff' || G.state === 'album' || G.state === 'titles' || G.state === 'recipes' || G.state === 'wheel') { drawTitle(G.t); drawLights(G.t); ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0); if (G.state === 'diff') drawDiff(G.t); if (G.state === 'album') { BT = BT.filter(b => b.id === 'hud'); drawAlbum(G.t); } if (G.state === 'titles') { BT = BT.filter(b => b.id === 'hud'); drawTitles(G.t); } if (G.state === 'recipes') { BT = BT.filter(b => b.id === 'hud'); drawRecipes(G.t); } if (G.state === 'wheel') { BT = BT.filter(b => b.id === 'hud'); drawWheel(G.t); } drawHUD(G.t); drawFX(G.t); }
     else {
       drawWalkers(G.t); drawRival(G.t); drawHeat(G.t);
       if (G.state === 'play') { drawCustomers(G.t); if (G.raid) drawRaid(G.t); }
       drawRain(G.t); drawLights(G.t); drawSeason(G.t);   // under the order bubbles
       drawAHSeat(G.t);
       ctx.drawImage(bg, 0, (CT - 14) * SC * DPR, bg.width, 24 * SC * DPR, 0, CT - 14, W, 24);
-      if (G.state === 'play') drawHelper(G.t);
+      if (G.state === 'play') { drawHelper(G.t); drawDirt(G.t); }
       drawStations(G.t);
       if (G.state === 'play') { nameTags(); drawOrders(G.t); drawItems(G.t); if (G.power === false) drawBlackout(G.t); drawAHMove(G.t); }
       ctx.setTransform(SC * DPR, 0, 0, SC * DPR, 0, 0);
