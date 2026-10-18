@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.twisterdaark.rahmacart",
+      "sha256_cert_fingerprints": [
+        "C9:5B:CE:FF:97:D8:3B:34:60:F1:3F:A4:77:8A:08:71:AC:BA:A2:A7:7D:42:8C:AA:BF:A0:01:B3:D9:10:62:4A"
+      ]
+    }
+  }
+]
